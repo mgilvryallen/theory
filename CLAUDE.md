@@ -14,3 +14,11 @@ in the same commit:
 
 If you can also reach the front page repo, update this app's fallback `about` line in its `APPS`
 list to match (it's only shown if the manifest can't be read).
+
+## Changing the icon
+
+Browsers keep icons a long time. When the icon changes, re-render the PNGs from `icons/icon.svg`
+and bump the `?v=` on every icon address: in `index.html` (the `rel="icon"` and
+`apple-touch-icon` links and the header image) and in `manifest.webmanifest`. The front page
+takes this app's icon from the manifest, so it picks up the new one too. Bump `CACHE` in
+`sw.js` as well.
