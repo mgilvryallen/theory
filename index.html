@@ -1,0 +1,1741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Theory</title>
+    <meta name="description" content="Music theory you can turn in your hands: a wheel of scales and modes that names what you make, the modes side by side, chords, the circle of fifths and an ear game.">
+    <meta name="theme-color" content="#f7f3e9">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Theory">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/icon-180.png">
+    <style>
+        @font-face {
+            font-family: 'Rug Pull';
+            src: url('fonts/TAYRugPull.otf') format('opentype');
+            font-display: swap;
+        }
+
+        @font-face {
+            font-family: 'Lumios Typewriter';
+            src: url('fonts/LumiosTypewriter-Old.ttf') format('truetype');
+            font-display: swap;
+        }
+
+        :root {
+            --parchment: #f7f3e9;
+            --paper: #fffdf7;
+            --ink: #2c2416;
+            --heading: #4a3f2f;
+            --green: #3d5a42;
+            --tan: #8b7759;
+            --light-tan: #c9bda5;
+            --muted: #6b5d4f;
+            --rust: #a0522d;
+            --ochre: #b07d2a;
+            --woad: #3e5f8a;
+            --indigo: #34466e;
+            --plum: #7b4b6a;
+            --teal: #2f6f6b;
+            --berry: #94404f;
+            --moss: #6b7a3a;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        p, li {
+            text-wrap: pretty;
+        }
+
+        h1, h2, h3 {
+            text-wrap: balance;
+        }
+
+        body {
+            font-family: 'Lumios Typewriter', Georgia, serif;
+            font-size: 17px;
+            line-height: 1.6;
+            color: var(--ink);
+            background-color: var(--parchment);
+            background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 119, 89, 0.02) 2px, rgba(139, 119, 89, 0.02) 4px);
+            padding: calc(16px + env(safe-area-inset-top)) 16px calc(24px + env(safe-area-inset-bottom));
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin: 10px 0 24px;
+        }
+
+        header img {
+            width: 56px;
+            height: 56px;
+        }
+
+        h1 {
+            font-family: 'Rug Pull', Georgia, serif;
+            font-weight: normal;
+            font-size: 40px;
+            letter-spacing: 1px;
+            color: var(--heading);
+            line-height: 1.1;
+        }
+
+        .tagline {
+            color: var(--muted);
+            font-size: 15px;
+            margin-top: 6px;
+        }
+
+        h2 {
+            font-family: 'Rug Pull', Georgia, serif;
+            font-weight: normal;
+            font-size: 22px;
+            color: var(--accent, var(--heading));
+            line-height: 1.2;
+            margin-bottom: 10px;
+        }
+
+        h3 {
+            font-family: 'Rug Pull', Georgia, serif;
+            font-weight: normal;
+            font-size: 17px;
+            letter-spacing: 0.5px;
+            color: var(--heading);
+            margin: 16px 0 6px;
+        }
+
+        .card {
+            background: var(--paper);
+            border: 1px solid var(--light-tan);
+            border-top: 4px solid var(--accent, var(--light-tan));
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 15px;
+        }
+
+        .hint + .hint {
+            margin-top: 8px;
+        }
+
+        a {
+            color: var(--green);
+        }
+
+        b, .em {
+            font-family: 'Rug Pull', Georgia, serif;
+            font-weight: normal;
+            letter-spacing: 0.4px;
+            color: var(--heading);
+        }
+
+        button {
+            font-family: inherit;
+            color: inherit;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 16px;
+            background: var(--accent, var(--green));
+            color: var(--parchment);
+            border: none;
+            border-radius: 999px;
+            font-family: 'Rug Pull', Georgia, serif;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            filter: brightness(0.9);
+        }
+
+        .btn.quiet {
+            background: transparent;
+            color: var(--heading);
+            border: 1px solid var(--light-tan);
+        }
+
+        .btn.on {
+            background: var(--heading);
+            color: var(--parchment);
+            border-color: var(--heading);
+        }
+
+        .row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .link-btn {
+            background: none;
+            border: none;
+            color: var(--green);
+            font-size: 14px;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        /* ---- The wheel ---- */
+        .wheel-wrap {
+            position: relative;
+            width: 100%;
+            max-width: 380px;
+            margin: 4px auto 0;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #wheel {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+
+        .spin {
+            transform-origin: 200px 200px;
+            transform-box: view-box;
+        }
+
+        .spin.ease, .spin.ease .upright {
+            transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.25, 1);
+        }
+
+        .upright {
+            transform-box: view-box;
+        }
+
+        .slot {
+            cursor: pointer;
+        }
+
+        .note-name {
+            font-family: 'Lumios Typewriter', Georgia, serif;
+            font-size: 15px;
+            fill: var(--heading);
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+
+        .note-name.out {
+            fill: var(--light-tan);
+        }
+
+        .degree {
+            font-family: 'Lumios Typewriter', Georgia, serif;
+            font-weight: bold;
+            font-size: 15px;
+            text-anchor: middle;
+            dominant-baseline: central;
+            fill: var(--parchment);
+            pointer-events: none;
+        }
+
+        .degree.one {
+            font-size: 18px;
+        }
+
+        .ring-label {
+            font-family: 'Lumios Typewriter', Georgia, serif;
+            font-size: 10px;
+            fill: var(--tan);
+            letter-spacing: 1px;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .stepper {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--light-tan);
+            border-radius: 999px;
+            padding: 2px;
+        }
+
+        .stepper span {
+            font-family: 'Rug Pull', Georgia, serif;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            color: var(--heading);
+            text-align: center;
+            line-height: 1.15;
+        }
+
+        .stepper button {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            font-size: 20px;
+            color: var(--heading);
+            cursor: pointer;
+        }
+
+        .stepper button:hover {
+            background: var(--parchment);
+        }
+
+        .play-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        /* What you've made */
+        .name-box {
+            margin-top: 16px;
+            padding: 14px 16px;
+            background: var(--parchment);
+            border: 1px solid var(--light-tan);
+        }
+
+        .scale-name {
+            font-family: 'Rug Pull', Georgia, serif;
+            font-size: 24px;
+            line-height: 1.2;
+            color: var(--rust);
+        }
+
+        .scale-name.new {
+            color: var(--plum);
+        }
+
+        .aka {
+            color: var(--tan);
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        .about {
+            font-size: 15px;
+            margin-top: 8px;
+        }
+
+        .spelled {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 10px;
+        }
+
+        .spelled span {
+            min-width: 40px;
+            padding: 2px 6px;
+            text-align: center;
+            border: 1px solid var(--light-tan);
+            background: var(--paper);
+            font-size: 15px;
+            line-height: 1.25;
+        }
+
+        .spelled small {
+            display: block;
+            font-family: 'Rug Pull', Georgia, serif;
+            font-size: 12px;
+            color: var(--tan);
+        }
+
+        .spelled .changed small {
+            color: var(--rust);
+        }
+
+        .near {
+            font-size: 14px;
+            color: var(--muted);
+            margin-top: 10px;
+        }
+
+        .near button {
+            background: none;
+            border: none;
+            color: var(--green);
+            text-decoration: underline;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* ---- Modes grid ---- */
+        .modes {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .modes th {
+            font-family: 'Lumios Typewriter', Georgia, serif;
+            font-weight: normal;
+            color: var(--tan);
+            font-size: 12px;
+            padding: 0 0 4px;
+        }
+
+        .modes td {
+            text-align: center;
+            padding: 0;
+            height: 34px;
+            border-top: 1px dotted var(--light-tan);
+        }
+
+        .modes td.mode-name {
+            text-align: left;
+            padding-right: 6px;
+            white-space: nowrap;
+        }
+
+        .modes tr {
+            cursor: pointer;
+        }
+
+        .modes tr:hover td {
+            background: var(--parchment);
+        }
+
+        .modes tr.current td {
+            background: #f1ead8;
+        }
+
+        .cell {
+            display: inline-block;
+            min-width: 28px;
+            padding: 1px 3px;
+            line-height: 1.4;
+        }
+
+        .cell.diff {
+            color: var(--parchment);
+            background: var(--rust);
+            border-radius: 4px;
+        }
+
+        .cell.diff.up {
+            background: var(--woad);
+        }
+
+        .cell.step {
+            box-shadow: 0 0 0 2px var(--ochre);
+            border-radius: 4px;
+        }
+
+        .mode-line {
+            font-size: 13px;
+            color: var(--muted);
+            text-align: left;
+            padding: 0 0 6px;
+            border-top: none !important;
+            height: auto !important;
+        }
+
+        .toggle {
+            display: inline-flex;
+            border: 1px solid var(--light-tan);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .toggle button {
+            border: none;
+            background: transparent;
+            padding: 4px 12px;
+            font-family: 'Rug Pull', Georgia, serif;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            color: var(--heading);
+            cursor: pointer;
+        }
+
+        .toggle button.on {
+            background: var(--heading);
+            color: var(--parchment);
+        }
+
+        .legend {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: var(--muted);
+            margin-top: 10px;
+        }
+
+        .legend .cell {
+            min-width: 22px;
+            text-align: center;
+        }
+
+        /* ---- Chords ---- */
+        .chords {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .chord {
+            border: 1px solid var(--light-tan);
+            background: var(--parchment);
+            padding: 8px 4px;
+            text-align: center;
+            cursor: pointer;
+            line-height: 1.25;
+        }
+
+        .chord:hover {
+            border-color: var(--tan);
+        }
+
+        .chord .numeral {
+            display: block;
+            font-family: 'Lumios Typewriter', Georgia, serif;
+            font-size: 19px;
+            font-weight: bold;
+            color: var(--accent);
+        }
+
+        .chord .chord-name {
+            display: block;
+            font-size: 14px;
+        }
+
+        .chord .chord-notes {
+            display: block;
+            font-size: 12px;
+            color: var(--tan);
+        }
+
+        .chord.sounding {
+            background: var(--accent);
+        }
+
+        .chord.sounding span {
+            color: var(--parchment) !important;
+        }
+
+        /* ---- Circle of fifths ---- */
+        #fifths {
+            display: block;
+            width: 100%;
+            max-width: 340px;
+            margin: 4px auto 0;
+        }
+
+        .key-slot {
+            cursor: pointer;
+        }
+
+        .key-name {
+            font-family: 'Rug Pull', Georgia, serif;
+            text-anchor: middle;
+            dominant-baseline: central;
+            pointer-events: none;
+        }
+
+        .sig {
+            font-family: 'Lumios Typewriter', Georgia, serif;
+            font-size: 10px;
+            text-anchor: middle;
+            fill: var(--tan);
+            pointer-events: none;
+        }
+
+        /* ---- Ear ---- */
+        .choices {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .choice {
+            padding: 9px 4px;
+            border: 1px solid var(--light-tan);
+            background: var(--parchment);
+            font-size: 14px;
+            line-height: 1.2;
+            cursor: pointer;
+        }
+
+        .choice.right {
+            background: var(--green);
+            border-color: var(--green);
+            color: var(--parchment);
+        }
+
+        .choice.wrong {
+            background: var(--rust);
+            border-color: var(--rust);
+            color: var(--parchment);
+        }
+
+        .ear-result {
+            min-height: 3.2em;
+            margin-top: 12px;
+            font-size: 15px;
+        }
+
+        .streak {
+            font-size: 14px;
+            color: var(--tan);
+        }
+
+        /* The heading face is all capitals and its 1 reads as an I, so numbers and numerals
+           get the typewriter face */
+        .num {
+            font-family: 'Lumios Typewriter', Georgia, serif;
+            letter-spacing: 0;
+            text-transform: none;
+        }
+
+        .credit {
+            text-align: center;
+            margin-top: 24px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="icons/icon.svg" alt="">
+            <h1>Theory</h1>
+            <p class="tagline">Turn the wheel. See what you made, hear it, and what it's called.</p>
+        </header>
+
+        <!-- The wheel -->
+        <div class="card" style="--accent: var(--rust)">
+            <h2>The Wheel</h2>
+            <p class="hint"><b>Outside:</b> all twelve notes. <b>Middle:</b> the ones in your scale, lit. Tap one to add it or take it out; drag the ring to carry the whole scale to a new key. <b>Inside:</b> the scale's degrees, counted from the <b class="num">1</b>. Drag it to move the 1 and keep every note where it is: that's a new mode.</p>
+
+            <div class="wheel-wrap" id="wheelWrap">
+                <svg id="wheel" viewBox="0 0 400 400" role="img" aria-label="Scale wheel"></svg>
+            </div>
+
+            <div class="controls">
+                <div class="stepper">
+                    <button onclick="transpose(-1)" aria-label="Key down a half step">‹</button>
+                    <span>key<br><span id="keyLabel"></span></span>
+                    <button onclick="transpose(1)" aria-label="Key up a half step">›</button>
+                </div>
+                <div class="stepper">
+                    <button onclick="stepOne(-1)" aria-label="Move the 1 down">‹</button>
+                    <span>the <span class="num">1</span><br><span id="oneLabel"></span></span>
+                    <button onclick="stepOne(1)" aria-label="Move the 1 up">›</button>
+                </div>
+            </div>
+
+            <div class="play-row">
+                <button class="btn" onclick="playScale()">▶ Play it</button>
+                <button class="btn quiet" id="droneBtn" onclick="toggleDrone()">drone under</button>
+                <button class="btn quiet" onclick="setScale(state.root, [0, 2, 4, 5, 7, 9, 11])">back to major</button>
+            </div>
+
+            <div class="name-box" id="nameBox"></div>
+        </div>
+
+        <!-- Two roads to minor -->
+        <div class="card" style="--accent: var(--plum)">
+            <h2>Two Roads to Minor</h2>
+            <p class="hint">Start from a major scale. You can get to minor two ways, and they don't land in the same place.</p>
+            <h3>Lower the <span class="num">3, 6</span> and <span class="num">7</span></h3>
+            <p class="hint">Keep the 1 where it is and drop three notes a half step. Same home, darker notes: <span id="parallelText">C major becomes C minor</span>. That's its <b>parallel</b> minor.</p>
+            <div class="row" style="margin-top: 10px">
+                <button class="btn" style="--accent: var(--plum)" onclick="roadOne()">Show me</button>
+            </div>
+            <h3>Move the <span class="num">1</span> down to the <span class="num">6</span></h3>
+            <p class="hint">Keep every note and slide the 1 down to the sixth. Same notes, a new home: <span id="relativeText">C major becomes A minor</span>. That's its <b>relative</b> minor, and it has the same key signature.</p>
+            <div class="row" style="margin-top: 10px">
+                <button class="btn" style="--accent: var(--plum)" onclick="roadTwo()">Show me</button>
+            </div>
+        </div>
+
+        <!-- Modes side by side -->
+        <div class="card" style="--accent: var(--woad)">
+            <h2>The Modes, Side by Side</h2>
+            <p class="hint">The seven modes of the major scale, brightest at the top. Each one down lowers a single note (circled) from the one above it. Tap a row to put it on the wheel.</p>
+            <div class="row" style="margin-top: 12px; justify-content: space-between">
+                <span class="hint">compared to</span>
+                <div class="toggle" id="compareToggle">
+                    <button onclick="setCompare('closest')">closest</button><button onclick="setCompare('major')">major</button><button onclick="setCompare('minor')">minor</button>
+                </div>
+            </div>
+            <table class="modes" id="modesTable"></table>
+            <div class="legend">
+                <span><span class="cell diff">♭</span> lower than the comparison</span>
+                <span><span class="cell diff up">♯</span> higher</span>
+                <span><span class="cell step">&nbsp;</span> the one note this step lowers</span>
+            </div>
+        </div>
+
+        <!-- Chords -->
+        <div class="card" style="--accent: var(--green)" id="chordsCard">
+            <h2>Chords in This Scale</h2>
+            <p class="hint" id="chordsHint">Stack every other note of the scale, starting on each degree, and you get its chords. Capital numerals are major, small ones minor, ° diminished, + augmented. Tap to hear.</p>
+            <div class="row" style="margin-top: 10px">
+                <div class="toggle" id="chordSize">
+                    <button onclick="setChordSize(3)">triads</button><button onclick="setChordSize(4)">sevenths</button>
+                </div>
+            </div>
+            <div class="chords" id="chords"></div>
+        </div>
+
+        <!-- Circle of fifths -->
+        <div class="card" style="--accent: var(--ochre)">
+            <h2>The Circle of Fifths</h2>
+            <p class="hint">Each step clockwise is a fifth up and one more sharp (or one fewer flat). Neighbors share six of their seven notes, which is why songs move to them so easily. Outside: major keys. Inside: their relative minors. Tap one to put it on the wheel.</p>
+            <svg id="fifths" viewBox="0 0 340 340" role="img" aria-label="Circle of fifths"></svg>
+            <p class="hint" id="fifthsText" style="margin-top: 8px"></p>
+        </div>
+
+        <!-- Ear -->
+        <div class="card" style="--accent: var(--teal)">
+            <h2>Ear: Name That Interval</h2>
+            <p class="hint">Two notes, one after the other. How far apart are they? Each one comes with a tune that starts on it, to help it stick.</p>
+            <div class="row" style="margin-top: 12px; justify-content: space-between">
+                <div class="row">
+                    <button class="btn" style="--accent: var(--teal)" onclick="newQuestion()" id="earPlay">▶ New pair</button>
+                    <button class="btn quiet" onclick="replay()" id="earAgain" hidden>again</button>
+                </div>
+                <div class="toggle" id="earLevel">
+                    <button onclick="setEarLevel(0)">starter</button><button onclick="setEarLevel(1)">all</button>
+                </div>
+            </div>
+            <div class="choices" id="choices"></div>
+            <div class="ear-result" id="earResult"></div>
+            <div class="streak" id="streak"></div>
+        </div>
+
+        <div class="card" style="--accent: var(--tan)">
+            <h2>Practice It</h2>
+            <p class="hint">Play your scale against a drone: <a id="droneLink" href="../drone/">open Drone in <span id="droneKey">C</span></a>. Sit on each note of the scale over the drone and listen to how it leans: the 1 and 5 rest, the 4 wants down, the 7 wants up.</p>
+        </div>
+
+        <div class="credit">
+            Made by <a href="https://mgilvryallen.com" target="_blank">M'Gilvry Allen</a><br><a href="https://github.com/mgilvryallen/theory" target="_blank">make your own copy</a>
+        </div>
+    </div>
+
+    <script>
+        // ---- Notes and names ----
+        const LETTERS = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+        const LETTER_PC = [0, 2, 4, 5, 7, 9, 11];
+        const SHARP_NAMES = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+        const FLAT_NAMES = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+        const KEY_NAMES = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'F♯', 'G', 'A♭', 'A', 'B♭', 'B'];
+        const DRONE_KEYS = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+        const MAJOR = [0, 2, 4, 5, 7, 9, 11];
+        const MINOR = [0, 2, 3, 5, 7, 8, 10];
+        const ACC = { '-2': '𝄫', '-1': '♭', '0': '', '1': '♯', '2': '𝄪' };
+
+        const mod12 = n => ((n % 12) + 12) % 12;
+
+        // ---- The scales it knows ----
+        // Steps from the 1, a name, other names, and a line about it. Families are scales whose
+        // rotations are the modes of one parent; the wheel uses them to say "the 3rd mode of ...".
+        const SCALES = [
+            { steps: [0, 2, 4, 5, 7, 9, 11], name: 'Major', aka: 'Ionian · Bilawal thaat', about: 'Home base for most of the music you know. Bright and settled; the 7 leans hard up into the 1.' },
+            { steps: [0, 2, 3, 5, 7, 9, 10], name: 'Dorian', aka: 'Kafi thaat', about: 'Minor with a raised 6: dark, but with a lift in it. Scarborough Fair, Drunken Sailor, a lot of Irish and old-time tunes.' },
+            { steps: [0, 1, 3, 5, 7, 8, 10], name: 'Phrygian', aka: 'Bhairavi thaat · close to maqam Kurd', about: 'Minor with a lowered 2, and that half step over the 1 gives it its Spanish, flamenco shadow.' },
+            { steps: [0, 2, 4, 6, 7, 9, 11], name: 'Lydian', aka: 'Kalyan thaat · Yaman', about: 'Major with a raised 4: floating, a little dreamlike, never quite touching down. Film scores love it.' },
+            { steps: [0, 2, 4, 5, 7, 9, 10], name: 'Mixolydian', aka: 'Khamaj thaat', about: 'Major with a lowered 7: bright but loose, no pull into the 1. Old Joe Clark, bagpipe tunes, a great deal of rock.' },
+            { steps: [0, 2, 3, 5, 7, 8, 10], name: 'Natural Minor', aka: 'Aeolian · Asavari thaat', about: 'The plain minor scale: the relative minor of major, same notes, starting on its 6th.' },
+            { steps: [0, 1, 3, 5, 6, 8, 10], name: 'Locrian', aka: 'half-diminished', about: 'Minor with a lowered 2 and 5. With no true fifth over its 1 it never feels settled, so it turns up mostly in metal and jazz.' },
+
+            { steps: [0, 2, 3, 5, 7, 8, 11], name: 'Harmonic Minor', aka: 'close to maqam Nahawand', about: 'Natural minor with a raised 7, so the V chord can be major and pull home. That 3-step gap between ♭6 and 7 is its exotic edge.' },
+            { steps: [0, 1, 3, 5, 6, 9, 10], name: 'Locrian ♮6', about: 'The 2nd mode of harmonic minor.' },
+            { steps: [0, 2, 4, 5, 8, 9, 11], name: 'Ionian ♯5', aka: 'augmented major', about: 'The 3rd mode of harmonic minor: major with a raised 5.' },
+            { steps: [0, 2, 3, 6, 7, 9, 10], name: 'Ukrainian Dorian', aka: 'Romanian minor · Dorian ♯4 · Misheberakh', about: 'Dorian with a raised 4. Klezmer and Eastern European folk music.' },
+            { steps: [0, 1, 4, 5, 7, 8, 10], name: 'Phrygian Dominant', aka: 'Freygish · Ahava Rabbah · maqam Hijaz (in twelve notes)', about: 'Phrygian with a major 3rd: the sound of klezmer, flamenco and much of the Middle East. The 5th mode of harmonic minor.' },
+            { steps: [0, 3, 4, 6, 7, 9, 11], name: 'Lydian ♯2', about: 'The 6th mode of harmonic minor.' },
+            { steps: [0, 1, 3, 4, 6, 8, 9], name: 'Altered Diminished', aka: 'Super-Locrian 𝄫7', about: 'The 7th mode of harmonic minor.' },
+
+            { steps: [0, 2, 3, 5, 7, 9, 11], name: 'Melodic Minor', aka: 'jazz minor', about: 'Minor with a raised 6 and 7: a major scale with just its 3rd lowered. Its modes run through jazz.' },
+            { steps: [0, 1, 3, 5, 7, 9, 10], name: 'Dorian ♭2', aka: 'Phrygian ♮6', about: 'The 2nd mode of melodic minor.' },
+            { steps: [0, 2, 4, 6, 8, 9, 11], name: 'Lydian Augmented', about: 'The 3rd mode of melodic minor: Lydian with a raised 5.' },
+            { steps: [0, 2, 4, 6, 7, 9, 10], name: 'Lydian Dominant', aka: 'acoustic scale · Overtone scale', about: 'Lydian with a lowered 7, or Mixolydian with a raised 4. Close to the natural overtones of a single note; the Simpsons theme.' },
+            { steps: [0, 2, 4, 5, 7, 8, 10], name: 'Mixolydian ♭6', aka: 'Aeolian dominant · Hindu scale', about: 'The 5th mode of melodic minor: major at the bottom, minor at the top.' },
+            { steps: [0, 2, 3, 5, 6, 8, 10], name: 'Locrian ♮2', aka: 'half-diminished scale', about: 'The 6th mode of melodic minor.' },
+            { steps: [0, 1, 3, 4, 6, 8, 10], name: 'Altered', aka: 'Super-Locrian', about: 'The 7th mode of melodic minor. Jazz players use it over a dominant chord with every tension bent.' },
+
+            { steps: [0, 2, 4, 5, 7, 8, 11], name: 'Harmonic Major', about: 'Major with a lowered 6.' },
+            { steps: [0, 1, 4, 5, 7, 8, 11], name: 'Double Harmonic', aka: 'Byzantine · Arabic · Bhairav thaat · maqam Hijaz Kar (in twelve notes)', about: 'Two augmented seconds, one in each half. Heard across the Middle East, North Africa and India.' },
+            { steps: [0, 2, 3, 6, 7, 8, 11], name: 'Hungarian Minor', aka: 'double harmonic minor · Gypsy minor', about: 'Harmonic minor with a raised 4.' },
+            { steps: [0, 1, 4, 6, 7, 8, 11], name: 'Purvi', aka: 'Purvi thaat', about: 'One of the ten parent scales (thaats) of North Indian classical music.' },
+            { steps: [0, 1, 4, 6, 7, 9, 11], name: 'Marwa', aka: 'Marwa thaat', about: 'A North Indian thaat: Lydian with a lowered 2.' },
+            { steps: [0, 1, 3, 6, 7, 8, 11], name: 'Todi', aka: 'Todi thaat', about: 'A North Indian thaat with a lowered 2, 3 and 6 and a raised 4.' },
+            { steps: [0, 1, 3, 5, 7, 8, 11], name: 'Neapolitan Minor', about: 'Harmonic minor with a lowered 2.' },
+            { steps: [0, 1, 3, 5, 7, 9, 11], name: 'Neapolitan Major', about: 'Melodic minor with a lowered 2.' },
+            { steps: [0, 1, 4, 5, 6, 8, 11], name: 'Persian', about: 'Double harmonic with a lowered 5: dense with half steps.' },
+            { steps: [0, 1, 4, 6, 8, 10, 11], name: 'Enigmatic', aka: "Verdi's scala enigmatica", about: 'An odd one Verdi built a piece around: mostly whole steps, with half steps at both ends.' },
+            { steps: [0, 3, 4, 6, 7, 9, 10], name: 'Hungarian Major', about: 'A raised 2 and 4, lowered 7.' },
+
+            { steps: [0, 2, 4, 7, 9], name: 'Major Pentatonic', aka: 'gong mode', about: 'Major without its 4 and 7, the two notes that pull. Nothing in it can clash, which is why it is everywhere from folk tunes to fiddle breaks to the black keys of a piano.' },
+            { steps: [0, 3, 5, 7, 10], name: 'Minor Pentatonic', aka: 'yu mode', about: 'Natural minor without its 2 and 6. Blues, rock solos, the first scale most guitarists learn.' },
+            { steps: [0, 2, 5, 7, 10], name: 'Suspended Pentatonic', aka: 'Egyptian · shang mode', about: 'The 2nd mode of the pentatonic: no 3rd at all, so neither major nor minor.' },
+            { steps: [0, 3, 5, 8, 10], name: 'Man Gong', aka: 'blues minor · jue mode', about: 'The 3rd mode of the pentatonic.' },
+            { steps: [0, 2, 5, 7, 9], name: 'Ritusen', aka: 'yo scale · zhi mode', about: 'The 4th mode of the pentatonic; Japanese folk song.' },
+            { steps: [0, 2, 3, 7, 8], name: 'Hirajōshi', about: 'A Japanese pentatonic, tuned on the koto.' },
+            { steps: [0, 1, 5, 7, 8], name: 'In', aka: 'Sakura · Miyako-bushi', about: 'A Japanese pentatonic with half steps in it, the scale of the folk song Sakura.' },
+            { steps: [0, 1, 5, 6, 10], name: 'Iwato', about: 'A Japanese pentatonic, the 5th mode of In.' },
+            { steps: [0, 2, 3, 7, 9], name: 'Kumoi', about: 'A Japanese pentatonic: Dorian with no 4 or 7.' },
+
+            { steps: [0, 3, 5, 6, 7, 10], name: 'Blues', aka: 'minor blues', about: 'The minor pentatonic with its "blue note," the ♭5, slipped in between the 4 and 5.' },
+            { steps: [0, 2, 3, 4, 7, 9], name: 'Major Blues', about: 'The major pentatonic with a ♭3 to bend up from.' },
+            { steps: [0, 2, 4, 6, 8, 10], name: 'Whole Tone', about: 'Nothing but whole steps: no home, no pull, all hover. Debussy, and every dream sequence on TV. Only two exist.' },
+            { steps: [0, 3, 4, 7, 8, 11], name: 'Augmented', about: 'Minor 3rd, half step, over and over: two augmented chords a half step apart.' },
+            { steps: [0, 2, 4, 6, 9, 10], name: 'Prometheus', aka: 'mystic chord', about: "Scriabin's scale, built from fourths." },
+            { steps: [0, 1, 4, 6, 7, 10], name: 'Tritone', about: 'Two major chords a tritone apart.' },
+
+            { steps: [0, 2, 3, 5, 6, 8, 9, 11], name: 'Diminished', aka: 'whole-half · octatonic', about: 'Whole step, half step, over and over. Only three exist; jazz players use it over diminished chords.' },
+            { steps: [0, 1, 3, 4, 6, 7, 9, 10], name: 'Dominant Diminished', aka: 'half-whole · octatonic', about: 'Half step, whole step, over and over. Over a dominant chord it gives you every altered tension at once.' },
+            { steps: [0, 2, 4, 5, 7, 9, 10, 11], name: 'Bebop Dominant', about: 'Mixolydian with the major 7 added as a passing note, so a run of eighth notes lands chord tones on the beats.' },
+            { steps: [0, 2, 4, 5, 7, 8, 9, 11], name: 'Bebop Major', about: 'Major with a ♭6 passing note added.' },
+            { steps: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], name: 'Chromatic', about: 'All twelve. Not a scale so much as the whole map.' }
+        ];
+
+        const FAMILIES = [
+            { parent: 'the major scale', short: 'major', steps: [0, 2, 4, 5, 7, 9, 11] },
+            { parent: 'harmonic minor', short: 'harmonic minor', steps: [0, 2, 3, 5, 7, 8, 11] },
+            { parent: 'melodic minor', short: 'melodic minor', steps: [0, 2, 3, 5, 7, 9, 11] },
+            { parent: 'harmonic major', short: 'harmonic major', steps: [0, 2, 4, 5, 7, 8, 11] },
+            { parent: 'double harmonic', short: 'double harmonic', steps: [0, 1, 4, 5, 7, 8, 11] },
+            { parent: 'the pentatonic', short: 'major pentatonic', steps: [0, 2, 4, 7, 9] }
+        ];
+
+        const maskOf = steps => steps.reduce((m, s) => m | (1 << mod12(s)), 0);
+        const stepsOf = mask => [...Array(12).keys()].filter(i => mask & (1 << i));
+        const rotateMask = (mask, k) => maskOf(stepsOf(mask).map(s => s - k));
+        const SCALE_BY_MASK = new Map(SCALES.map(s => [maskOf(s.steps), s]));
+        const ORDINAL = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th'];
+
+        // ---- State ----
+        const STORE = 'theorySettings';
+        function loadState() {
+            try {
+                const saved = JSON.parse(localStorage.getItem(STORE) || '{}');
+                if (Array.isArray(saved.notes) && saved.notes.length && saved.notes.includes(saved.root)) return { compare: 'closest', chordSize: 3, earLevel: 0, ...saved };
+            } catch (e) {}
+            return { notes: [...MAJOR], root: 0, compare: 'closest', chordSize: 3, earLevel: 0 };
+        }
+        const state = loadState();
+        // Turns of each ring so far, in twelfths. They only add up (never wrap), so a ring always
+        // spins the short way to where it's going.
+        let setTurns = 0;    // the lit notes
+        let oneTurns = state.root;   // the degrees ring follows the 1
+        let drag = null;
+
+        function save() {
+            try {
+                localStorage.setItem(STORE, JSON.stringify({ notes: state.notes, root: state.root, compare: state.compare, chordSize: state.chordSize, earLevel: state.earLevel }));
+            } catch (e) {}
+        }
+
+        function stepsFromRoot() {
+            return state.notes.map(n => mod12(n - state.root)).sort((a, b) => a - b);
+        }
+
+        // ---- Spelling ----
+        // Degree labels: with seven notes each degree gets its own number, and its sharp or flat
+        // is how far it sits from the major scale's. Otherwise each step gets its usual name.
+        function degreeLabels(steps) {
+            if (steps.length === 7) {
+                return steps.map((s, i) => {
+                    let off = s - MAJOR[i];
+                    if (off > 6) off -= 12;
+                    if (off < -6) off += 12;
+                    return Math.abs(off) <= 2 ? (ACC[off] + (i + 1)) : String(i + 1);
+                });
+            }
+            const has = n => steps.includes(n);
+            const name = { 0: '1', 1: '♭2', 2: '2', 3: '♭3', 4: '3', 5: '4', 6: '♭5', 7: '5', 8: '♭6', 9: '6', 10: '♭7', 11: '7' };
+            if (has(3) && has(4) && !has(2)) name[3] = '♯2';   // augmented scale: a raised 2 under the 3
+            if (!has(5)) name[6] = '♯4';                       // no 4 to flatten the 5 against: whole tone, Prometheus
+            if (has(6) && !has(7) && has(8)) name[8] = '♯5';   // whole tone again
+            return steps.map(s => name[s]);
+        }
+
+        // Note names: with seven notes, one of each letter, choosing the spelling of the 1 that
+        // needs the fewest sharps and flats. Otherwise sharps or flats, whichever the key prefers.
+        function spell(root, steps) {
+            if (steps.length === 7) {
+                let best = null;
+                for (let letter = 0; letter < 7; letter++) {
+                    let rootOff = mod12(root - LETTER_PC[letter]);
+                    if (rootOff > 6) rootOff -= 12;
+                    if (Math.abs(rootOff) > 1) continue;
+                    // On a tie (D♯ minor or E♭ minor), the name the key usually goes by
+                    let cost = LETTERS[letter] + ACC[rootOff] === KEY_NAMES[root] ? 0 : 0.5;
+                    const names = steps.map((s, i) => {
+                        const l = (letter + i) % 7;
+                        let off = mod12(root + s - LETTER_PC[l]);
+                        if (off > 6) off -= 12;
+                        cost += Math.abs(off) + (Math.abs(off) > 1 ? 4 : 0);
+                        return Math.abs(off) <= 2 ? LETTERS[l] + ACC[off] : null;
+                    });
+                    if (names.includes(null)) continue;
+                    if (!best || cost < best.cost) best = { cost, names };
+                }
+                if (best) return best.names;
+            }
+            const flats = [1, 3, 5, 8, 10].includes(root) || steps.includes(3) && !steps.includes(4) && ![4, 9, 11, 6].includes(root);
+            return steps.map(s => (flats ? FLAT_NAMES : SHARP_NAMES)[mod12(root + s)]);
+        }
+
+        function rootName() {
+            const steps = stepsFromRoot();
+            return spell(state.root, steps)[0];
+        }
+
+        // ---- Naming what's on the wheel ----
+        function identify() {
+            const steps = stepsFromRoot();
+            const mask = maskOf(steps);
+            const known = SCALE_BY_MASK.get(mask);
+            let family = null;
+            FAMILIES.forEach(f => {
+                const fm = maskOf(f.steps);
+                if (f.steps.length !== steps.length) return;
+                const fsteps = stepsOf(fm);
+                fsteps.forEach((start, i) => {
+                    if (rotateMask(fm, start) === mask) family = { ...f, degree: i, start };
+                });
+            });
+            // Same notes, a different 1: other named scales hiding in these notes
+            const hiding = [];
+            steps.forEach(s => {
+                if (s === 0) return;
+                const other = SCALE_BY_MASK.get(rotateMask(mask, s));
+                if (other) hiding.push({ step: s, scale: other });
+            });
+            // One note away: move a single note a half step (or add or drop one)
+            const near = [];
+            if (!known) {
+                const seen = new Set();
+                const consider = (m, how) => {
+                    const s = SCALE_BY_MASK.get(m);
+                    if (s && !seen.has(s.name) && (m & 1)) {
+                        seen.add(s.name);
+                        near.push({ scale: s, how, mask: m });
+                    }
+                };
+                steps.forEach(s => {
+                    if (s === 0) return;
+                    [-1, 1].forEach(d => {
+                        const t = mod12(s + d);
+                        if (t === 0 || mask & (1 << t)) return;
+                        consider((mask & ~(1 << s)) | (1 << t), { from: s, to: t });
+                    });
+                });
+            }
+            return { steps, mask, known, family, hiding, near };
+        }
+
+        // ---- The wheel ----
+        const C = 200;
+        const R_NAMES = 178, R_SET = 136, R_DEG = 88;
+        const svgNS = 'http://www.w3.org/2000/svg';
+
+        function polar(r, slot) {
+            const a = (slot * 30 - 90) * Math.PI / 180;
+            return [C + r * Math.cos(a), C + r * Math.sin(a)];
+        }
+
+        function el(tag, attrs, parent) {
+            const node = document.createElementNS(svgNS, tag);
+            Object.entries(attrs).forEach(([k, v]) => node.setAttribute(k, v));
+            if (parent) parent.appendChild(node);
+            return node;
+        }
+
+        function buildWheel() {
+            const svg = document.getElementById('wheel');
+            svg.innerHTML = '';
+            el('circle', { cx: C, cy: C, r: 197, fill: '#f7f3e9', stroke: '#c9bda5' }, svg);
+            el('circle', { cx: C, cy: C, r: R_NAMES - 20, fill: '#fffdf7', stroke: '#c9bda5' }, svg);
+            el('circle', { cx: C, cy: C, r: R_DEG + 26, fill: '#f1ead8', stroke: '#c9bda5' }, svg);
+            el('circle', { cx: C, cy: C, r: 44, fill: '#fffdf7', stroke: '#c9bda5' }, svg);
+            // Outer: the twelve notes, fixed, C at the top
+            const names = el('g', { id: 'names' }, svg);
+            for (let pc = 0; pc < 12; pc++) {
+                const [x, y] = polar(R_NAMES, pc);
+                const hit = el('circle', { cx: x, cy: y, r: 18, fill: 'transparent', class: 'slot', 'data-pc': pc, 'data-ring': 'names' }, names);
+                hit.addEventListener('click', () => playNote(pc));
+                el('text', { x, y, class: 'note-name', id: 'name' + pc }, names);
+            }
+            // Middle: the lit notes, spun by setTurns
+            el('g', { id: 'setRing', class: 'spin' }, svg);
+            // Inner: the degrees, spun by oneTurns
+            el('g', { id: 'degRing', class: 'spin' }, svg);
+            const center = el('g', {}, svg);
+            el('text', { x: C, y: C - 6, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 22px; fill: #a0522d' }, center);
+            el('text', { x: C, y: C + 16, class: 'note-name', id: 'centerSub', style: 'font-size: 10px; fill: #8b7759; letter-spacing: 1px' }, center);
+            renderWheel(true);
+        }
+
+        function renderWheel(instant) {
+            const steps = stepsFromRoot();
+            const labels = degreeLabels(steps);
+            const spelled = spell(state.root, steps);
+            const nameOf = {};
+            steps.forEach((s, i) => nameOf[mod12(state.root + s)] = spelled[i]);
+            const flats = spelled.some(n => n.includes('♭')) || (!spelled.some(n => n.includes('♯')) && [5, 10, 3, 8, 1].includes(state.root));
+
+            for (let pc = 0; pc < 12; pc++) {
+                const t = document.getElementById('name' + pc);
+                t.textContent = nameOf[pc] || (flats ? FLAT_NAMES : SHARP_NAMES)[pc];
+                t.setAttribute('class', 'note-name' + (nameOf[pc] ? '' : ' out'));
+            }
+
+            const setRing = document.getElementById('setRing');
+            const degRing = document.getElementById('degRing');
+            setRing.classList.toggle('ease', !instant);
+            degRing.classList.toggle('ease', !instant);
+            setRing.innerHTML = '';
+            degRing.innerHTML = '';
+            const lit = new Set(state.notes);
+            // The set ring is drawn as if the scale had never moved, then turned into place
+            for (let slot = 0; slot < 12; slot++) {
+                const pc = mod12(slot + setTurns);
+                const [x, y] = polar(R_SET, slot);
+                const on = lit.has(pc);
+                const g = el('g', { class: 'slot', 'data-pc': pc, 'data-ring': 'set' }, setRing);
+                el('circle', { cx: x, cy: y, r: 20, fill: 'transparent' }, g);
+                el('circle', { cx: x, cy: y, r: on ? 14 : 7, fill: on ? (pc === state.root ? '#3d5a42' : '#a0522d') : '#fffdf7', stroke: on ? '#4a3f2f' : '#c9bda5', 'stroke-width': on ? 1 : 1.2 }, g);
+            }
+            setRing.style.transform = `rotate(${setTurns * 30}deg)`;
+
+            // The degrees ring: drawn around the 1, then turned to it. Labels stay upright.
+            const angle = oneTurns * 30;
+            steps.forEach((s, i) => {
+                const [x, y] = polar(R_DEG, s);
+                const one = s === 0;
+                const g = el('g', {}, degRing);
+                el('circle', { cx: x, cy: y, r: one ? 17 : 14, fill: one ? '#3d5a42' : '#4a3f2f', opacity: one ? 1 : 0.82 }, g);
+                const label = el('text', { x, y, class: 'degree' + (one ? ' one' : ''), }, g);
+                label.textContent = labels[i];
+                label.classList.add('upright');
+                label.style.transformOrigin = `${x}px ${y}px`;
+                label.style.transform = `rotate(${-angle}deg)`;
+            });
+            for (let s = 0; s < 12; s++) {
+                if (steps.includes(s)) continue;
+                const [x, y] = polar(R_DEG, s);
+                el('circle', { cx: x, cy: y, r: 2.2, fill: '#c9bda5' }, degRing);
+            }
+            degRing.style.transform = `rotate(${angle}deg)`;
+
+            document.getElementById('centerName').textContent = spelled[0];
+            document.getElementById('centerSub').textContent = steps.length + ' NOTES';
+        }
+
+        // ---- Changing the scale ----
+        function update(instant) {
+            save();
+            renderWheel(instant);
+            renderName();
+            renderModes();
+            renderChords();
+            renderFifths();
+            const key = rootName();
+            document.getElementById('keyLabel').textContent = key;
+            const known = SCALE_BY_MASK.get(maskOf(stepsFromRoot()));
+            document.getElementById('oneLabel').textContent = known ? known.name.replace('Natural ', '') : 'unnamed';
+            document.getElementById('droneKey').textContent = key;
+            document.getElementById('droneLink').href = `../drone/#key=${encodeURIComponent(DRONE_KEYS[state.root])}`;
+            if (droneNodes) moveDrone();
+        }
+
+        // Carry the whole scale up or down: same mode, new key
+        function transpose(k) {
+            state.notes = state.notes.map(n => mod12(n + k));
+            state.root = mod12(state.root + k);
+            setTurns += k;
+            oneTurns += k;
+            update(false);
+            playNote(state.root, 0.5);
+        }
+
+        // Move the 1 to the next lit note up or down: same notes, new mode
+        function stepOne(dir) {
+            const steps = stepsFromRoot();
+            const i = steps.indexOf(0);
+            const next = dir > 0 ? steps[(i + 1) % steps.length] : steps[(i - 1 + steps.length) % steps.length];
+            moveOneTo(mod12(state.root + next), dir);
+        }
+
+        function moveOneTo(pc, dir) {
+            if (!state.notes.includes(pc)) return;
+            let delta = mod12(pc - state.root);
+            if (dir < 0 && delta > 0) delta -= 12;
+            if (dir === undefined && delta > 6) delta -= 12;
+            state.root = pc;
+            oneTurns += delta;
+            update(false);
+            playNote(pc, 0.5);
+        }
+
+        function toggleNote(pc) {
+            if (pc === state.root) {
+                // Taking out the 1 moves it to the nearest note left
+                if (state.notes.length <= 1) return;
+                state.notes = state.notes.filter(n => n !== pc);
+                const steps = state.notes.map(n => mod12(n - pc));
+                const nearest = steps.reduce((a, b) => Math.min(a, 12 - a) <= Math.min(b, 12 - b) ? a : b);
+                const target = mod12(pc + nearest);
+                let delta = mod12(target - state.root);
+                if (delta > 6) delta -= 12;
+                state.root = target;
+                oneTurns += delta;
+                update(false);
+                return;
+            }
+            if (state.notes.includes(pc)) {
+                state.notes = state.notes.filter(n => n !== pc);
+            } else {
+                state.notes = [...state.notes, pc];
+                playNote(pc, 0.5);
+            }
+            update(true);
+        }
+
+        function setScale(root, steps, keepTurns) {
+            let delta = mod12(root - state.root);
+            if (delta > 6) delta -= 12;
+            state.root = root;
+            state.notes = steps.map(s => mod12(root + s));
+            oneTurns += delta;
+            update(false);
+        }
+
+        // ---- Dragging the rings ----
+        function angleAt(event) {
+            const box = document.getElementById('wheel').getBoundingClientRect();
+            const x = (event.clientX - box.left) / box.width * 400 - C;
+            const y = (event.clientY - box.top) / box.height * 400 - C;
+            return { deg: Math.atan2(y, x) * 180 / Math.PI + 90, r: Math.hypot(x, y) };
+        }
+
+        function ringAt(r) {
+            if (r > R_NAMES - 20) return 'names';
+            if (r > R_DEG + 26) return 'set';
+            if (r > 44) return 'deg';
+            return null;
+        }
+
+        function slotAt(deg) {
+            return mod12(Math.round(deg / 30));
+        }
+
+        const wrap = document.getElementById('wheelWrap');
+        wrap.addEventListener('pointerdown', event => {
+            const { deg, r } = angleAt(event);
+            const ring = ringAt(r);
+            if (!ring) return;
+            drag = { ring, start: deg, last: deg, moved: 0, id: event.pointerId };
+            wrap.setPointerCapture(event.pointerId);
+        });
+        wrap.addEventListener('pointermove', event => {
+            if (!drag || drag.ring === 'names') return;
+            const { deg } = angleAt(event);
+            let d = deg - drag.last;
+            if (d > 180) d -= 360;
+            if (d < -180) d += 360;
+            drag.last = deg;
+            drag.moved += d;
+            if (Math.abs(drag.moved) < 6) return;
+            const g = document.getElementById(drag.ring === 'set' ? 'setRing' : 'degRing');
+            g.classList.remove('ease');
+            const base = (drag.ring === 'set' ? setTurns : oneTurns) * 30;
+            g.style.transform = `rotate(${base + drag.moved}deg)`;
+            if (drag.ring === 'deg') g.querySelectorAll('.upright').forEach(t => t.style.transform = `rotate(${-(base + drag.moved)}deg)`);
+        });
+        wrap.addEventListener('pointerup', event => {
+            if (!drag) return;
+            const { deg } = angleAt(event);
+            const d = drag;
+            drag = null;
+            if (Math.abs(d.moved) < 6) {
+                // A tap
+                const pc = slotAt(deg);
+                if (d.ring === 'names') playNote(pc);
+                else if (d.ring === 'set') toggleNote(pc);
+                else if (d.ring === 'deg') {
+                    if (state.notes.includes(pc) && pc !== state.root) moveOneTo(pc);
+                    else playNote(pc);
+                }
+                return;
+            }
+            const turns = Math.round(d.moved / 30);
+            if (d.ring === 'set') {
+                if (turns) transpose(turns);
+                else renderWheel(false);
+            } else {
+                // The 1 lands on the lit note nearest where it was let go
+                const target = mod12(state.root + turns);
+                const steps = state.notes.map(n => mod12(n - target));
+                const nearest = steps.reduce((a, b) => Math.min(a, 12 - a) <= Math.min(b, 12 - b) ? a : b);
+                const landing = mod12(target + (nearest > 6 ? nearest - 12 : nearest));
+                let delta = mod12(landing - state.root);
+                if (turns < 0 && delta > 0) delta -= 12;
+                if (turns > 0 && delta > 6) delta -= 12;
+                if (landing === state.root) renderWheel(false);
+                else {
+                    state.root = landing;
+                    oneTurns += delta;
+                    update(false);
+                    playNote(landing, 0.5);
+                }
+            }
+        });
+        wrap.addEventListener('pointercancel', () => {
+            drag = null;
+            renderWheel(false);
+        });
+
+        // ---- The name box ----
+        function renderName() {
+            const { steps, known, family, hiding, near } = identify();
+            const labels = degreeLabels(steps);
+            const spelled = spell(state.root, steps);
+            const key = spelled[0];
+            let html = '';
+            const showFamily = family && !(known && family.degree === 0);
+            if (known) {
+                // The family line below says which mode it is, so the blurb needn't repeat it
+                const about = showFamily ? known.about.replace(/ ?The \w+ mode of [^.]+\./, '').trim() : known.about;
+                html += `<div class="scale-name">${key} ${known.name}</div>`;
+                if (known.aka) html += `<div class="aka">also ${known.aka}</div>`;
+                if (about) html += `<p class="about">${about}</p>`;
+            } else {
+                html += `<div class="scale-name new">Unnamed: ${steps.length} notes on ${key}</div>`;
+                html += '<p class="about">Not one this wheel knows a name for. It may have one somewhere (there are thousands of named scales), or it may be yours.</p>';
+            }
+            if (showFamily) {
+                // Named as it's spelled here, so E♭ minor's relative is G♭ major, not F♯
+                const parentName = spelled[steps.indexOf(mod12(-family.start))] || spell(mod12(state.root - family.start), family.steps)[0];
+                html += `<p class="about">The ${ORDINAL[family.degree]} mode of ${family.parent}: the same notes as ${parentName} ${family.short}, starting on its ${ORDINAL[family.degree]} note.</p>`;
+            }
+            html += '<div class="spelled">' + steps.map((s, i) => {
+                const changed = steps.length === 7 && labels[i].length > 1;
+                return `<span class="${changed ? 'changed' : ''}">${spelled[i]}<small>${labels[i]}</small></span>`;
+            }).join('') + '</div>';
+            const others = hiding;
+            if (others.length) {
+                html += `<p class="near">The same notes from another 1: ` + others.slice(0, 4).map(h => {
+                    const pc = mod12(state.root + h.step);
+                    const name = spelled[steps.indexOf(h.step)];
+                    return `<button onclick="moveOneTo(${pc})">${name} ${h.scale.name}</button>`;
+                }).join(', ') + '</p>';
+            }
+            if (near.length) {
+                html += `<p class="near">One note away: ` + near.slice(0, 4).map(n => {
+                    const verb = n.how.to > n.how.from || (n.how.from === 11 && n.how.to === 0) ? 'raise' : 'lower';
+                    return `<button onclick="setScale(${state.root}, [${stepsOf(n.mask).join(',')}], true)">${n.scale.name}</button> (${verb} the ${labels[steps.indexOf(n.how.from)]})`;
+                }).join(', ') + '</p>';
+            }
+            document.getElementById('nameBox').innerHTML = html;
+        }
+
+        // ---- Two roads to minor ----
+        let roadBusy = false;
+        const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+        async function roadOne() {
+            if (roadBusy) return;
+            roadBusy = true;
+            const root = state.root;
+            setScale(root, MAJOR, true);
+            await wait(700);
+            for (const [from, to] of [[4, 3], [9, 8], [11, 10]]) {
+                state.notes = state.notes.filter(n => n !== mod12(root + from)).concat(mod12(root + to));
+                update(true);
+                playNote(mod12(root + to), 0.6);
+                await wait(800);
+            }
+            document.getElementById('wheel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            playScale();
+            roadBusy = false;
+        }
+
+        async function roadTwo() {
+            if (roadBusy) return;
+            roadBusy = true;
+            const root = state.root;
+            setScale(root, MAJOR, true);
+            await wait(700);
+            // Down through the 7 to the 6
+            moveOneTo(mod12(root + 11), -1);
+            await wait(700);
+            moveOneTo(mod12(root + 9), -1);
+            await wait(700);
+            document.getElementById('wheel').scrollIntoView({ behavior: 'smooth', block: 'center' });
+            playScale();
+            roadBusy = false;
+        }
+
+        function renderRoads() {
+            const major = spell(state.root, MAJOR)[0];
+            const parallel = spell(state.root, MINOR)[0];
+            const rel = spell(mod12(state.root + 9), MINOR)[0];
+            document.getElementById('parallelText').textContent = `${major} major becomes ${parallel} minor`;
+            document.getElementById('relativeText').textContent = `${major} major becomes ${rel} minor`;
+        }
+
+        // ---- Modes side by side ----
+        // Brightest to darkest: each lowers one note of the one above
+        const LADDER = [
+            { name: 'Lydian', steps: [0, 2, 4, 6, 7, 9, 11], feel: 'dreamy, floating' },
+            { name: 'Ionian', steps: [0, 2, 4, 5, 7, 9, 11], feel: 'bright, home' },
+            { name: 'Mixolydian', steps: [0, 2, 4, 5, 7, 9, 10], feel: 'bright, loose, fiddle tunes' },
+            { name: 'Dorian', steps: [0, 2, 3, 5, 7, 9, 10], feel: 'minor with a lift' },
+            { name: 'Aeolian', steps: [0, 2, 3, 5, 7, 8, 10], feel: 'plain, sad, old' },
+            { name: 'Phrygian', steps: [0, 1, 3, 5, 7, 8, 10], feel: 'dark, Spanish' },
+            { name: 'Locrian', steps: [0, 1, 3, 5, 6, 8, 10], feel: 'unsettled, no fifth' }
+        ];
+
+        function setCompare(c) {
+            state.compare = c;
+            save();
+            renderModes();
+        }
+
+        function diffAgainst(steps, ref) {
+            return steps.map((s, i) => s - ref[i]);
+        }
+
+        function describe(mode) {
+            const vsMajor = diffAgainst(mode.steps, MAJOR);
+            const vsMinor = diffAgainst(mode.steps, MINOR);
+            const count = d => d.filter(Boolean).length;
+            const say = (d, base) => {
+                const changes = d.map((x, i) => x ? `${x > 0 ? 'raised' : 'lowered'} ${i + 1}` : null).filter(Boolean);
+                if (!changes.length) return `the ${base} scale itself`;
+                return `${base} with a ${changes.join(' and ')}`;
+            };
+            if (count(vsMajor) === 0) return 'the major scale itself';
+            if (count(vsMinor) === 0) return 'the natural minor itself';
+            return count(vsMajor) <= count(vsMinor) ? say(vsMajor, 'major') : say(vsMinor, 'minor');
+        }
+
+        function renderModes() {
+            document.querySelectorAll('#compareToggle button').forEach((b, i) => b.classList.toggle('on', ['closest', 'major', 'minor'][i] === state.compare));
+            const current = maskOf(stepsFromRoot());
+            const key = rootName();
+            let html = '<tr><th></th>' + [1, 2, 3, 4, 5, 6, 7].map(n => `<th>${n}</th>`).join('') + '</tr>';
+            LADDER.forEach((mode, row) => {
+                let ref;
+                if (state.compare === 'major') ref = MAJOR;
+                else if (state.compare === 'minor') ref = MINOR;
+                else {
+                    const a = diffAgainst(mode.steps, MAJOR).filter(Boolean).length;
+                    const b = diffAgainst(mode.steps, MINOR).filter(Boolean).length;
+                    ref = a <= b ? MAJOR : MINOR;
+                }
+                const labels = degreeLabels(mode.steps);
+                const above = row > 0 ? LADDER[row - 1].steps : null;
+                const cells = mode.steps.map((s, i) => {
+                    const d = s - ref[i];
+                    const stepped = above && above[i] !== s;
+                    return `<td><span class="cell${d ? ' diff' : ''}${d > 0 ? ' up' : ''}${stepped ? ' step' : ''}">${labels[i]}</span></td>`;
+                }).join('');
+                const isCurrent = maskOf(mode.steps) === current;
+                html += `<tr class="${isCurrent ? 'current' : ''}" onclick="pickMode(${row})"><td class="mode-name"><b>${mode.name}</b></td>${cells}</tr>`;
+                html += `<tr class="${isCurrent ? 'current' : ''}" onclick="pickMode(${row})"><td class="mode-line" colspan="8">${describe(mode)} · ${mode.feel}</td></tr>`;
+            });
+            document.getElementById('modesTable').innerHTML = html;
+        }
+
+        function pickMode(row) {
+            setScale(state.root, LADDER[row].steps, true);
+            playScale();
+        }
+
+        // ---- Chords ----
+        function setChordSize(n) {
+            state.chordSize = n;
+            save();
+            renderChords();
+        }
+
+        const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
+        const QUALITIES = [
+            { shape: [4, 7], suffix: '', numeral: n => n, label: 'major' },
+            { shape: [3, 7], suffix: 'm', numeral: n => n.toLowerCase(), label: 'minor' },
+            { shape: [3, 6], suffix: '°', numeral: n => n.toLowerCase() + '°', label: 'diminished' },
+            { shape: [4, 8], suffix: '+', numeral: n => n + '+', label: 'augmented' },
+            { shape: [2, 7], suffix: 'sus2', numeral: n => n + 'sus2', label: 'sus2' },
+            { shape: [5, 7], suffix: 'sus4', numeral: n => n + 'sus4', label: 'sus4' },
+            { shape: [4, 6], suffix: '(♭5)', numeral: n => n + '♭5', label: 'major ♭5' },
+            { shape: [3, 8], suffix: 'm(♯5)', numeral: n => n.toLowerCase() + '♯5', label: 'minor ♯5' }
+        ];
+        // Seventh chords: the chord's name after the letter, and its numeral built from the base
+        const SEVENTHS = {
+            '4,7,11': ['maj7', b => b + 'maj7'], '4,7,10': ['7', b => b + '7'], '3,7,10': ['m7', b => b.toLowerCase() + '7'],
+            '3,6,10': ['m7♭5', b => b.toLowerCase() + 'ø7'], '3,6,9': ['°7', b => b.toLowerCase() + '°7'],
+            '3,7,11': ['m(maj7)', b => b.toLowerCase() + '(maj7)'], '4,8,11': ['+maj7', b => b + '+maj7'], '4,8,10': ['+7', b => b + '+7']
+        };
+
+        let chordList = [];
+
+        function renderChords() {
+            document.querySelectorAll('#chordSize button').forEach((b, i) => b.classList.toggle('on', [3, 4][i] === state.chordSize));
+            const steps = stepsFromRoot();
+            const box = document.getElementById('chords');
+            if (steps.length < 5) {
+                box.innerHTML = '<p class="hint">Too few notes to stack in thirds. Add a few on the wheel.</p>';
+                chordList = [];
+                return;
+            }
+            const labels = degreeLabels(steps);
+            const spelled = spell(state.root, steps);
+            const n = steps.length;
+            chordList = steps.map((s, i) => {
+                const picks = [0, 2, 4, 6].slice(0, state.chordSize).map(k => i + k);
+                const pcs = picks.map(k => steps[k % n] + 12 * Math.floor(k / n));
+                const rel = pcs.map(p => p - pcs[0]);
+                const quality = QUALITIES.find(q => q.shape[0] === rel[1] && q.shape[1] === rel[2]);
+                const acc = labels[i].replace(/\d/g, '');
+                const base = n === 7 ? ROMAN[i] : ROMAN[Math.min(6, parseInt(labels[i].replace(/\D/g, '')) - 1)];
+                let numeral = quality ? quality.numeral(base) : base.toLowerCase() + '?';
+                let name = spelled[i] + (quality ? quality.suffix : '');
+                if (state.chordSize === 4) {
+                    const seventh = SEVENTHS[rel.slice(1).join(',')];
+                    if (seventh) {
+                        name = spelled[i] + seventh[0];
+                        numeral = seventh[1](base);
+                    } else {
+                        numeral += '7?';
+                    }
+                }
+                return { numeral: acc + numeral, name, notes: picks.map(k => spelled[k % n]), pcs: pcs.map(p => state.root + p) };
+            });
+            box.innerHTML = chordList.map((c, i) => `
+                <button class="chord" onclick="playChord(${i}, this)">
+                    <span class="numeral">${c.numeral}</span>
+                    <span class="chord-name">${c.name}</span>
+                    <span class="chord-notes">${c.notes.join(' ')}</span>
+                </button>`).join('');
+        }
+
+        // ---- Circle of fifths ----
+        // Relative minors, in circle order (under C, G, D, ...)
+        const MINOR_NAMES = ['a', 'e', 'b', 'f♯', 'c♯', 'g♯', 'e♭', 'b♭', 'f', 'c', 'g', 'd'];
+
+        function signature(pc) {
+            // Sharps or flats in the major key on pc
+            const sharps = { 0: 0, 7: 1, 2: 2, 9: 3, 4: 4, 11: 5, 6: 6 };
+            const flats = { 5: 1, 10: 2, 3: 3, 8: 4, 1: 5 };
+            if (pc in sharps) return sharps[pc] ? `${sharps[pc]}♯` : 'none';
+            return `${flats[pc]}♭`;
+        }
+
+        function parentMajor() {
+            // If the wheel holds a major scale's notes, which major key?
+            const mask = maskOf(state.notes);
+            for (let pc = 0; pc < 12; pc++) if (maskOf(MAJOR.map(s => pc + s)) === mask) return pc;
+            return null;
+        }
+
+        function renderFifths() {
+            renderRoads();
+            const svg = document.getElementById('fifths');
+            svg.innerHTML = '';
+            const c = 170;
+            el('circle', { cx: c, cy: c, r: 165, fill: '#f7f3e9', stroke: '#c9bda5' }, svg);
+            el('circle', { cx: c, cy: c, r: 112, fill: '#fffdf7', stroke: '#c9bda5' }, svg);
+            el('circle', { cx: c, cy: c, r: 66, fill: '#f1ead8', stroke: '#c9bda5' }, svg);
+            const home = parentMajor();
+            for (let i = 0; i < 12; i++) {
+                const pc = mod12(i * 7);
+                const a = (i * 30 - 90) * Math.PI / 180;
+                const [ox, oy] = [c + 140 * Math.cos(a), c + 140 * Math.sin(a)];
+                const [ix, iy] = [c + 89 * Math.cos(a), c + 89 * Math.sin(a)];
+                const isHome = home === pc;
+                const isNear = home !== null && (mod12(home + 7) === pc || mod12(home + 5) === pc);
+                const outer = el('g', { class: 'key-slot' }, svg);
+                el('circle', { cx: ox, cy: oy, r: 21, fill: isHome ? '#b07d2a' : isNear ? '#f1ead8' : 'transparent', stroke: isNear ? '#b07d2a' : 'none' }, outer);
+                const t = el('text', { x: ox, y: oy - 3, class: 'key-name', 'font-size': 17, fill: isHome ? '#f7f3e9' : '#4a3f2f' }, outer);
+                t.textContent = KEY_NAMES[pc] === 'F♯' ? 'F♯/G♭' : KEY_NAMES[pc];
+                if (KEY_NAMES[pc] === 'F♯') t.setAttribute('font-size', 12);
+                const sig = el('text', { x: ox, y: oy + 12, class: 'sig' }, outer);
+                sig.textContent = signature(pc);
+                if (isHome) sig.setAttribute('style', 'fill:#f7f3e9');
+                outer.addEventListener('click', () => {
+                    setScale(pc, MAJOR);
+                    playScale();
+                });
+                const inner = el('g', { class: 'key-slot' }, svg);
+                const minorPc = mod12(pc + 9);
+                const isHomeMinor = isHome && state.root === minorPc;
+                el('circle', { cx: ix, cy: iy, r: 17, fill: isHomeMinor ? '#7b4b6a' : 'transparent' }, inner);
+                const m = el('text', { x: ix, y: iy, class: 'key-name', 'font-size': 15, 'font-weight': 'bold', style: "font-family: 'Lumios Typewriter', Georgia, serif", fill: isHomeMinor ? '#f7f3e9' : '#7b4b6a' }, inner);
+                m.textContent = MINOR_NAMES[i];
+                inner.addEventListener('click', () => {
+                    setScale(minorPc, MINOR);
+                    playScale();
+                });
+            }
+            const mid = el('text', { x: c, y: c, class: 'key-name', 'font-size': 13, fill: '#8b7759' }, svg);
+            mid.textContent = 'fifths →';
+            const text = document.getElementById('fifthsText');
+            if (home === null) {
+                text.textContent = 'The wheel isn\'t holding a major scale\'s notes right now (or any of its modes), so there\'s no one key to light up.';
+            } else {
+                const name = KEY_NAMES[home];
+                const sig = signature(home);
+                const up = KEY_NAMES[mod12(home + 7)], down = KEY_NAMES[mod12(home + 5)];
+                text.innerHTML = `These are the notes of <b>${name} major</b> (${sig === 'none' ? 'no sharps or flats' : sig}). Its neighbors, <b>${up}</b> and <b>${down}</b>, change just one note: ${up} raises its 4, ${down} lowers its 7.`;
+            }
+        }
+
+        // ---- Sound ----
+        let audio = null;
+        let out = null;
+        let droneNodes = null;
+
+        function ensureAudio() {
+            if (!audio) {
+                audio = new (window.AudioContext || window.webkitAudioContext)();
+                const comp = audio.createDynamicsCompressor();
+                comp.threshold.value = -14;
+                comp.connect(audio.destination);
+                out = audio.createGain();
+                out.gain.value = 0.7;
+                out.connect(comp);
+                // A small room
+                const room = audio.createConvolver();
+                const length = audio.sampleRate * 1.6;
+                const impulse = audio.createBuffer(2, length, audio.sampleRate);
+                for (let ch = 0; ch < 2; ch++) {
+                    const d = impulse.getChannelData(ch);
+                    for (let i = 0; i < length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / length, 3);
+                }
+                room.buffer = impulse;
+                const wet = audio.createGain();
+                wet.gain.value = 0.18;
+                out.connect(room).connect(wet).connect(comp);
+            }
+            if (audio.state === 'suspended') audio.resume();
+            return audio;
+        }
+
+        // Middle C's octave, with the 1 placed so the scale sits in a comfortable range
+        function freqOf(pc, octaveShift = 0) {
+            const base = state.root >= 7 ? 48 : 60;
+            const midi = base + pc + 12 * octaveShift;
+            return 440 * Math.pow(2, (midi - 69) / 12);
+        }
+
+        // A soft, plucked-and-held tone: a triangle with a sine an octave down, darkening as it fades
+        function tone(freq, at, length, level = 0.25) {
+            const ctx = ensureAudio();
+            const g = ctx.createGain();
+            const lp = ctx.createBiquadFilter();
+            lp.type = 'lowpass';
+            lp.frequency.setValueAtTime(Math.min(6000, freq * 8), at);
+            lp.frequency.exponentialRampToValueAtTime(Math.max(400, freq * 2), at + length);
+            g.gain.setValueAtTime(0, at);
+            g.gain.linearRampToValueAtTime(level, at + 0.015);
+            g.gain.exponentialRampToValueAtTime(level * 0.35, at + 0.25);
+            g.gain.exponentialRampToValueAtTime(0.0008, at + length);
+            lp.connect(g).connect(out);
+            [['triangle', 1, 1], ['sine', 0.5, 0.5], ['sine', 2, 0.12]].forEach(([type, mult, amt]) => {
+                const o = ctx.createOscillator();
+                o.type = type;
+                o.frequency.value = freq * mult;
+                const og = ctx.createGain();
+                og.gain.value = amt;
+                o.connect(og).connect(lp);
+                o.start(at);
+                o.stop(at + length + 0.05);
+            });
+        }
+
+        // A single note, in the octave above the 1
+        function playNote(pc, length = 1.2) {
+            const ctx = ensureAudio();
+            tone(freqOf(state.root + mod12(pc - state.root)), ctx.currentTime + 0.01, length);
+        }
+
+        function playScale() {
+            const ctx = ensureAudio();
+            const steps = stepsFromRoot();
+            const t0 = ctx.currentTime + 0.05;
+            const gap = 0.34;
+            [...steps, 12].forEach((s, i) => tone(freqOf(state.root + s), t0 + i * gap, i === steps.length ? 1.6 : 0.9));
+        }
+
+        function playChord(i, button) {
+            const ctx = ensureAudio();
+            const chord = chordList[i];
+            if (!chord) return;
+            const t0 = ctx.currentTime + 0.03;
+            chord.pcs.forEach((p, k) => tone(freqOf(p), t0 + k * 0.045, 2.2, 0.18));
+            button.classList.add('sounding');
+            setTimeout(() => button.classList.remove('sounding'), 700);
+        }
+
+        // The drone: the 1 and its fifth, low and steady, for as long as it's on
+        function toggleDrone() {
+            const ctx = ensureAudio();
+            const btn = document.getElementById('droneBtn');
+            if (droneNodes) {
+                const t = ctx.currentTime;
+                droneNodes.gain.gain.setTargetAtTime(0, t, 0.3);
+                const nodes = droneNodes;
+                setTimeout(() => nodes.oscs.forEach(o => o.stop()), 1500);
+                droneNodes = null;
+                btn.classList.remove('on');
+                return;
+            }
+            const gain = ctx.createGain();
+            gain.gain.value = 0;
+            const lp = ctx.createBiquadFilter();
+            lp.type = 'lowpass';
+            lp.frequency.value = 900;
+            lp.connect(gain).connect(out);
+            const oscs = [[1, 0.22, -4], [1, 0.22, 4], [1.5, 0.12, 0], [0.5, 0.18, 0]].map(([mult, amt, detune]) => {
+                const o = ctx.createOscillator();
+                o.type = 'sawtooth';
+                o.detune.value = detune;
+                const og = ctx.createGain();
+                og.gain.value = amt * 0.35;
+                o.connect(og).connect(lp);
+                o.start();
+                o.mult = mult;
+                return o;
+            });
+            droneNodes = { gain, oscs };
+            moveDrone();
+            gain.gain.setTargetAtTime(0.5, ctx.currentTime, 0.4);
+            btn.classList.add('on');
+        }
+
+        function moveDrone() {
+            const f = freqOf(state.root) / 2;
+            droneNodes.oscs.forEach(o => o.frequency.setTargetAtTime(f * o.mult, audio.currentTime, 0.08));
+        }
+
+        // ---- Ear ----
+        const INTERVALS = [
+            { semis: 1, name: 'minor 2nd', tune: 'the Jaws theme' },
+            { semis: 2, name: 'major 2nd', tune: 'Happy Birthday ("hap-py")' },
+            { semis: 3, name: 'minor 3rd', tune: 'Greensleeves ("A-las")' },
+            { semis: 4, name: 'major 3rd', tune: 'When the Saints ("Oh when")' },
+            { semis: 5, name: 'perfect 4th', tune: 'Here Comes the Bride, Amazing Grace' },
+            { semis: 6, name: 'tritone', tune: 'The Simpsons ("The Simp-")' },
+            { semis: 7, name: 'perfect 5th', tune: 'Twinkle Twinkle ("twin-kle")' },
+            { semis: 8, name: 'minor 6th', tune: 'The Entertainer (the jump up to its high note)' },
+            { semis: 9, name: 'major 6th', tune: 'My Bonnie ("My Bon-")' },
+            { semis: 10, name: 'minor 7th', tune: "Somewhere from West Side Story (\"There's a\")" },
+            { semis: 11, name: 'major 7th', tune: 'Take On Me (the chorus leap)' },
+            { semis: 12, name: 'octave', tune: 'Somewhere Over the Rainbow ("Some-where")' }
+        ];
+        const STARTER = [3, 4, 5, 7, 12];
+        let question = null;
+        let streak = 0;
+
+        function setEarLevel(level) {
+            state.earLevel = level;
+            save();
+            question = null;
+            renderEar();
+        }
+
+        function pool() {
+            return state.earLevel ? INTERVALS : INTERVALS.filter(i => STARTER.includes(i.semis));
+        }
+
+        function newQuestion() {
+            const options = pool();
+            const pick = options[Math.floor(Math.random() * options.length)];
+            const low = 52 + Math.floor(Math.random() * 12);
+            question = { interval: pick, low, answered: false };
+            replay();
+            renderEar();
+            document.getElementById('earResult').textContent = '';
+        }
+
+        function replay() {
+            if (!question) return;
+            const ctx = ensureAudio();
+            const f = m => 440 * Math.pow(2, (m - 69) / 12);
+            const t = ctx.currentTime + 0.05;
+            tone(f(question.low), t, 1.0);
+            tone(f(question.low + question.interval.semis), t + 0.75, 1.4);
+        }
+
+        function answer(semis, button) {
+            if (!question || question.answered) return;
+            const right = semis === question.interval.semis;
+            button.classList.add(right ? 'right' : 'wrong');
+            if (right) {
+                question.answered = true;
+                streak++;
+                document.getElementById('earResult').innerHTML = `Yes, a <b>${question.interval.name}</b>. Think: ${question.interval.tune}.`;
+                setTimeout(newQuestion, 1800);
+            } else {
+                streak = 0;
+                const guessed = INTERVALS.find(i => i.semis === semis);
+                document.getElementById('earResult').innerHTML = `Not a ${guessed.name} (that's ${guessed.tune}). Listen again and try another.`;
+                replay();
+            }
+            document.getElementById('streak').textContent = streak > 1 ? `${streak} in a row` : '';
+        }
+
+        function renderEar() {
+            document.querySelectorAll('#earLevel button').forEach((b, i) => b.classList.toggle('on', i === state.earLevel));
+            document.getElementById('earAgain').hidden = !question;
+            document.getElementById('earPlay').textContent = question ? '▶ New pair' : '▶ Play a pair';
+            document.getElementById('choices').innerHTML = question ? pool().map(i => `<button class="choice" onclick="answer(${i.semis}, this)">${i.name}</button>`).join('') : '';
+        }
+
+        // ---- Start ----
+        buildWheel();
+        update(true);
+        renderEar();
+
+        if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
