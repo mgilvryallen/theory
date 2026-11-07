@@ -45,6 +45,11 @@
             --moss: #6b7a3a;
         }
 
+        /* The page keeps its own place when cards change size (see update) */
+        html {
+            overflow-anchor: none;
+        }
+
         [hidden] {
             display: none !important;
         }
@@ -326,7 +331,10 @@
         .drums {
             position: relative;
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            grid-template-columns: 1fr 1fr;
+            max-width: 300px;
+            margin-left: auto;
+            margin-right: auto;
             gap: 8px;
             height: 340px;
             margin-top: 12px;
@@ -437,14 +445,14 @@
             height: 32px;
             padding: 0 6px;
             border-radius: 16px;
-            background: var(--heading);
+            background: var(--rust);
+            border: 1px solid var(--heading);
             color: var(--parchment);
             font-weight: bold;
             font-size: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            opacity: 0.85;
         }
 
         .drum-item .deg.one {
@@ -583,7 +591,7 @@
         .line {
             position: relative;
             height: 64px;
-            margin: 18px 6px 0;
+            margin: 18px 30px 0;
         }
 
         .line::before {
@@ -633,6 +641,52 @@
             align-items: center;
             justify-content: center;
             transition: left 0.6s cubic-bezier(0.3, 0.7, 0.25, 1), background 0.2s, color 0.2s;
+        }
+
+        .line-dot.ghost {
+            width: 19px;
+            height: 19px;
+            margin-left: -9.5px;
+            top: 9px;
+            font-size: 10px;
+            border-style: dashed;
+            opacity: 0.55;
+        }
+
+        .line-arrow {
+            position: absolute;
+            top: 18px;
+            width: 22px;
+            border-top: 1px dashed var(--light-tan);
+        }
+
+        .line-arrow.left {
+            left: -26px;
+        }
+
+        .line-arrow.right {
+            right: -26px;
+        }
+
+        .line-arrow::after {
+            content: '';
+            position: absolute;
+            top: -5px;
+            border: 4.5px solid transparent;
+        }
+
+        .line-arrow.left::after {
+            left: -6px;
+            border-right: 6px solid var(--tan);
+        }
+
+        .line-arrow.right::after {
+            right: -6px;
+            border-left: 6px solid var(--tan);
+        }
+
+        .tick-name {
+            transition: left 0.6s cubic-bezier(0.3, 0.7, 0.25, 1), color 0.3s;
         }
 
         .line-dot.lit {
@@ -926,6 +980,11 @@
             cursor: pointer;
         }
 
+        .choice.heard {
+            border-color: var(--teal);
+            box-shadow: inset 0 0 0 1px var(--teal);
+        }
+
         .choice.right {
             background: var(--green);
             border-color: var(--green);
@@ -1002,8 +1061,15 @@
         <!-- Modes side by side -->
         <div class="card" style="--accent: var(--woad)">
             <h2>The Modes, Side by Side</h2>
-            <p class="hint">The seven modes of the major scale, brightest at the top: each one down lowers one note of the one above. The marked notes are what makes each one differ from plain major or minor, as the line under it says. Tap a row to put it on the wheel.</p>
+            <p class="hint">The seven modes of the major scale, brightest at the top: each one down lowers one note of the one above. Tap a row to put it on the wheel.</p>
+            <div class="row" style="margin-top: 12px; justify-content: space-between">
+                <span class="hint">compared to</span>
+                <div class="toggle" id="modeCompare">
+                    <button onclick="setModeCompare('above')">the one above</button><button onclick="setModeCompare('major')">major</button><button onclick="setModeCompare('minor')">minor</button>
+                </div>
+            </div>
             <table class="modes" id="modesTable"></table>
+            <p class="hint" id="compareNote" style="font-size: 13px; margin-top: 8px"></p>
         </div>
 
         <!-- Chords -->
@@ -1024,15 +1090,16 @@
         <div class="card" style="--accent: var(--ochre)">
             <h2>The Circle of Fifths</h2>
             <p class="hint">Each step clockwise is a fifth up and one more sharp (or one fewer flat). Neighbors share six of their seven notes, which is why songs move to them so easily. Outside: major keys. Inside: their relative minors. Tap one to put it on the wheel.</p>
-            <svg id="fifths" viewBox="0 0 340 340" role="img" aria-label="Circle of fifths"></svg>
+            <svg id="fifths" viewBox="0 0 400 400" role="img" aria-label="Circle of fifths"></svg>
             <div class="line" id="fifthsLine"></div>
             <p class="hint" id="fifthsText" style="margin-top: 8px"></p>
+            <div class="pickers" data-by="fifths"></div>
         </div>
 
         <!-- Ear -->
         <div class="card" style="--accent: var(--teal)">
             <h2>Ear: Name That Interval</h2>
-            <p class="hint">Two notes, one after the other. How far apart are they? Each one comes with a tune that starts on it, to help it stick.</p>
+            <p class="hint">Two notes, one after the other. How far apart are they? Each one comes with a tune that starts on it, to help it stick. Between pairs, tap any interval to hear it.</p>
             <div class="row" style="margin-top: 12px; justify-content: space-between">
                 <div class="row">
                     <button class="btn" style="--accent: var(--teal)" onclick="newQuestion()" id="earPlay">new pair</button>
@@ -1040,6 +1107,12 @@
                 </div>
                 <div class="toggle" id="earLevel">
                     <button onclick="setEarLevel(0)">starter</button><button onclick="setEarLevel(1)">all</button>
+                </div>
+            </div>
+            <div class="row" style="margin-top: 12px; justify-content: space-between">
+                <span class="hint">starting from</span>
+                <div class="toggle" id="earRoot">
+                    <button onclick="setEarRoot('random')">anywhere</button><button onclick="setEarRoot('key')">the 1 of <span id="earKey">C</span></button>
                 </div>
             </div>
             <div class="choices" id="choices"></div>
@@ -1168,7 +1241,7 @@
 
         function save() {
             try {
-                localStorage.setItem(STORE, JSON.stringify({ notes: state.notes, root: state.root, chordSize: state.chordSize, earLevel: state.earLevel, view: state.view }));
+                localStorage.setItem(STORE, JSON.stringify({ notes: state.notes, root: state.root, chordSize: state.chordSize, earLevel: state.earLevel, view: state.view, modeCompare: state.modeCompare, earRoot: state.earRoot }));
             } catch (e) {}
         }
 
@@ -1273,8 +1346,11 @@
         }
 
         // ---- The wheel ----
+        // Two rings: the twelve notes, fixed, C at the top; and the scale, its notes lit and
+        // numbered from the 1. Tap a note to add it or take it out, hold one to make it the 1,
+        // drag anywhere on the ring to carry the scale to a new key.
         const C = 200;
-        const R_NAMES = 178, R_SET = 136, R_DEG = 88;
+        const R_NAMES = 178, R_SET = 124, R_HUB = 72;
         const svgNS = 'http://www.w3.org/2000/svg';
 
         function polar(r, slot) {
@@ -1293,24 +1369,16 @@
             const svg = document.getElementById('wheel');
             svg.innerHTML = '';
             el('circle', { cx: C, cy: C, r: 197, fill: '#f7f3e9', stroke: '#c9bda5' }, svg);
-            el('circle', { cx: C, cy: C, r: R_NAMES - 20, fill: '#fffdf7', stroke: '#c9bda5' }, svg);
-            el('circle', { cx: C, cy: C, r: R_DEG + 26, fill: '#f1ead8', stroke: '#c9bda5' }, svg);
-            el('circle', { cx: C, cy: C, r: 44, fill: '#fffdf7', stroke: '#c9bda5' }, svg);
-            // Outer: the twelve notes, fixed, C at the top
+            el('circle', { cx: C, cy: C, r: R_NAMES - 20, fill: '#f1ead8', stroke: '#c9bda5' }, svg);
+            el('circle', { cx: C, cy: C, r: R_HUB, fill: '#fffdf7', stroke: '#c9bda5' }, svg);
             const names = el('g', { id: 'names' }, svg);
             for (let pc = 0; pc < 12; pc++) {
                 const [x, y] = polar(R_NAMES, pc);
-                const hit = el('circle', { cx: x, cy: y, r: 18, fill: 'transparent', class: 'slot', 'data-pc': pc, 'data-ring': 'names' }, names);
-                hit.addEventListener('click', () => playNote(pc));
                 el('text', { x, y, class: 'note-name', id: 'name' + pc }, names);
             }
-            // Middle: the lit notes, spun by setTurns
             el('g', { id: 'setRing', class: 'spin' }, svg);
-            // Inner: the degrees, spun by oneTurns
-            el('g', { id: 'degRing', class: 'spin' }, svg);
-            const center = el('g', {}, svg);
-            el('text', { x: C, y: C - 6, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 22px; fill: #a0522d' }, center);
-            el('text', { x: C, y: C + 16, class: 'note-name', id: 'centerSub', style: 'font-size: 10px; fill: #8b7759; letter-spacing: 1px' }, center);
+            el('text', { x: C, y: C - 10, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 26px; fill: #a0522d' }, svg);
+            el('text', { x: C, y: C + 16, class: 'note-name', id: 'centerSub', style: 'font-size: 12px; fill: #6b5d4f' }, svg);
             renderWheel(true);
         }
 
@@ -1318,60 +1386,63 @@
             const steps = stepsFromRoot();
             const labels = degreeLabels(steps);
             const spelled = spell(state.root, steps);
-            const nameOf = {};
-            steps.forEach((s, i) => nameOf[mod12(state.root + s)] = spelled[i]);
+            const nameOf = {}, degreeOf = {};
+            steps.forEach((s, i) => {
+                nameOf[mod12(state.root + s)] = spelled[i];
+                degreeOf[mod12(state.root + s)] = labels[i];
+            });
             const flats = spelled.some(n => n.includes('♭')) || (!spelled.some(n => n.includes('♯')) && [5, 10, 3, 8, 1].includes(state.root));
-
             for (let pc = 0; pc < 12; pc++) {
                 const t = document.getElementById('name' + pc);
                 t.textContent = nameOf[pc] || (flats ? FLAT_NAMES : SHARP_NAMES)[pc];
                 t.setAttribute('class', 'note-name' + (nameOf[pc] ? '' : ' out'));
             }
-
-            const setRing = document.getElementById('setRing');
-            const degRing = document.getElementById('degRing');
-            setRing.classList.toggle('ease', !instant);
-            degRing.classList.toggle('ease', !instant);
-            setRing.innerHTML = '';
-            degRing.innerHTML = '';
-            const lit = new Set(state.notes);
-            // The set ring is drawn as if the scale had never moved, then turned into place
+            const ring = document.getElementById('setRing');
+            ring.classList.toggle('ease', !instant);
+            ring.innerHTML = '';
+            const angle = setTurns * 30;
+            // Drawn as if the scale had never moved, then turned into place; numbers stay upright
             for (let slot = 0; slot < 12; slot++) {
                 const pc = mod12(slot + setTurns);
                 const [x, y] = polar(R_SET, slot);
-                const on = lit.has(pc);
-                const g = el('g', { class: 'slot', 'data-pc': pc, 'data-ring': 'set' }, setRing);
-                el('circle', { cx: x, cy: y, r: 20, fill: 'transparent' }, g);
-                el('circle', { cx: x, cy: y, r: on ? 14 : 7, fill: on ? (pc === state.root ? '#3d5a42' : '#a0522d') : '#fffdf7', stroke: on ? '#4a3f2f' : '#c9bda5', 'stroke-width': on ? 1 : 1.2 }, g);
+                const on = pc in degreeOf;
+                const g = el('g', { class: 'slot', 'data-pc': pc }, ring);
+                el('circle', { cx: x, cy: y, r: 24, fill: 'transparent' }, g);
+                if (on) {
+                    const one = pc === state.root;
+                    el('circle', { cx: x, cy: y, r: one ? 21 : 19, fill: one ? '#3d5a42' : '#a0522d', stroke: '#4a3f2f', 'stroke-width': 1 }, g);
+                    const label = el('text', { x, y, class: 'degree upright' + (one ? ' one' : '') }, g);
+                    label.textContent = degreeOf[pc];
+                    label.style.transformOrigin = `${x}px ${y}px`;
+                    label.style.transform = `rotate(${-angle}deg)`;
+                } else {
+                    el('circle', { cx: x, cy: y, r: 6, fill: '#fffdf7', stroke: '#c9bda5', 'stroke-width': 1.2 }, g);
+                }
             }
-            setRing.style.transform = `rotate(${setTurns * 30}deg)`;
-
-            // The degrees ring: drawn around the 1, then turned to it. Labels stay upright.
-            const angle = oneTurns * 30;
-            steps.forEach((s, i) => {
-                const [x, y] = polar(R_DEG, s);
-                const one = s === 0;
-                const g = el('g', {}, degRing);
-                el('circle', { cx: x, cy: y, r: one ? 17 : 14, fill: one ? '#3d5a42' : '#4a3f2f', opacity: one ? 1 : 0.82 }, g);
-                const label = el('text', { x, y, class: 'degree' + (one ? ' one' : ''), }, g);
-                label.textContent = labels[i];
-                label.classList.add('upright');
-                label.style.transformOrigin = `${x}px ${y}px`;
-                label.style.transform = `rotate(${-angle}deg)`;
-            });
-            for (let s = 0; s < 12; s++) {
-                if (steps.includes(s)) continue;
-                const [x, y] = polar(R_DEG, s);
-                el('circle', { cx: x, cy: y, r: 2.2, fill: '#c9bda5' }, degRing);
-            }
-            degRing.style.transform = `rotate(${angle}deg)`;
-
+            ring.style.transform = `rotate(${angle}deg)`;
+            const known = SCALE_BY_MASK.get(maskOf(steps));
             document.getElementById('centerName').textContent = spelled[0];
-            document.getElementById('centerSub').textContent = steps.length + ' NOTES';
+            document.getElementById('centerSub').textContent = known ? known.name.toLowerCase() : `${steps.length} notes`;
         }
 
         // ---- Changing the scale ----
+        // Whatever card you just touched stays put on screen while the cards above it change size
+        let touched = null;
+        ['pointerdown', 'change', 'keydown'].forEach(type => document.addEventListener(type, event => {
+            touched = { card: event.target.closest && event.target.closest('.card'), time: Date.now() };
+        }, true));
+
         function update(instant) {
+            const anchor = touched && touched.card && Date.now() - touched.time < 2000 ? touched.card : null;
+            const before = anchor ? anchor.getBoundingClientRect().top : 0;
+            renderAll(instant);
+            if (anchor) {
+                const shift = anchor.getBoundingClientRect().top - before;
+                if (Math.abs(shift) > 0.5) window.scrollBy(0, shift);
+            }
+        }
+
+        function renderAll(instant) {
             save();
             renderWheel(instant);
             renderDrums();
@@ -1388,7 +1459,7 @@
 
         // A jump from a list whizzes the wheel the long way round, a full turn extra
         function whizz(on) {
-            ['setRing', 'degRing'].forEach(id => document.getElementById(id).classList.toggle('whizz', on));
+            document.getElementById('setRing').classList.toggle('whizz', on);
         }
 
         // Carry the whole scale up or down: same mode, new key
@@ -1484,20 +1555,26 @@
             return groups.map(([title, names]) => `<optgroup label="${title}">` + names.map(name => `<option value="${SCALES.findIndex(sc => sc.name === name)}">${name}</option>`).join('') + '</optgroup>').join('');
         }
 
+        // On the circle of fifths card the key arrows go round the circle (down a fifth, up a
+        // fifth) and its list is in circle order
         function buildPickers() {
-            const keys = KEY_NAMES.map((name, pc) => `<option value="${pc}">${name}</option>`).join('');
             const scales = '<option value="-1" disabled>unnamed</option>' + scaleOptions();
-            document.querySelectorAll('.pickers').forEach(box => box.innerHTML = `
+            document.querySelectorAll('.pickers').forEach(box => {
+                const fifths = box.dataset.by === 'fifths';
+                const order = fifths ? Array.from({ length: 12 }, (_, i) => mod12(i * 7)) : [...Array(12).keys()];
+                const keys = order.map(pc => `<option value="${pc}">${KEY_NAMES[pc]}</option>`).join('');
+                box.innerHTML = `
                 <div class="picker">
-                    <button onclick="transpose(-1)" aria-label="Key down a half step">‹</button>
-                    <label class="pick"><span class="pick-label">key</span><span class="pick-value" data-show="key"></span><select data-pick="key" onchange="pickKey(Number(this.value))" aria-label="Key">${keys}</select></label>
-                    <button onclick="transpose(1)" aria-label="Key up a half step">›</button>
+                    <button onclick="${fifths ? 'transpose(5)' : 'transpose(-1)'}" aria-label="${fifths ? 'Down a fifth' : 'Key down a half step'}">‹</button>
+                    <label class="pick"><span class="pick-label">${fifths ? 'key by 5ths' : 'key'}</span><span class="pick-value" data-show="key"></span><select data-pick="key" onchange="pickKey(Number(this.value))" aria-label="Key">${keys}</select></label>
+                    <button onclick="${fifths ? 'transpose(-5)' : 'transpose(1)'}" aria-label="${fifths ? 'Up a fifth' : 'Key up a half step'}">›</button>
                 </div>
                 <div class="picker">
                     <button onclick="stepScale(-1)" aria-label="Previous scale">‹</button>
                     <label class="pick"><span class="pick-label">scale</span><span class="pick-value" data-show="scale"></span><select data-pick="scale" onchange="pickScale(Number(this.value))" aria-label="Scale">${scales}</select></label>
                     <button onclick="stepScale(1)" aria-label="Next scale">›</button>
-                </div>`);
+                </div>`;
+            });
         }
 
         function renderPickers() {
@@ -1534,8 +1611,8 @@
 
         // ---- The view ----
         const HINTS = {
-            wheel: '<b>Outside:</b> all twelve notes. <b>Middle:</b> the ones in your scale, lit. Tap one to add it or take it out; drag the ring to carry the whole scale to a new key. <b>Inside:</b> the scale\'s degrees, counted from the <b class="num">1</b>. Drag it to move the 1 and keep every note where it is: that\'s a new mode.',
-            drums: 'The same three wheels, seen from the side, with the <b class="num">1</b> in the window. <b>Left:</b> all twelve notes. <b>Middle:</b> your scale: tap a note to add it or take it out, roll the drum to carry the scale to a new key. <b>Right:</b> the degrees: roll it to move the 1 and keep every note where it is, a new mode.'
+            wheel: '<b>Outside:</b> all twelve notes. <b>Inside:</b> your scale, each note numbered from the <b class="num">1</b>. Tap a spot to add a note or take it out. Drag the ring to carry the whole scale to a new key. Hold a note to make it the 1: same notes, new mode.',
+            drums: 'The same two wheels, seen from the side, the <b class="num">1</b> in the window. <b>Left:</b> all twelve notes. <b>Right:</b> your scale, numbered from the 1. Tap a spot to add a note or take it out, roll the drum to carry the scale to a new key, and hold a note to make it the 1.'
         };
 
         function setView(view) {
@@ -1547,7 +1624,7 @@
             document.getElementById('wheelHint').innerHTML = HINTS[view];
             if (view === 'drums') {
                 anim.set = setTurns;
-                anim.one = anim.cam = oneTurns;
+                anim.cam = oneTurns;
                 renderDrums();
                 spinDrums();
             }
@@ -1559,53 +1636,50 @@
         // and shaded as it turns away, all twelve in view, so a face slipping off the top comes
         // round again at the bottom. They roll toward where they're going, so a jump whizzes.
         const DRUM_H = 170;
-        const anim = { set: 0, one: 0, cam: 0, drag: null };
+        const anim = { set: 0, cam: 0, drag: null };
         let drumFrame = null;
 
         function buildDrums() {
             const box = document.getElementById('drums');
-            box.innerHTML = ['notes', 'set', 'deg'].map(col => `
+            box.innerHTML = ['notes', 'set'].map(col => `
                 <div class="drum-col">
                     <div class="drum ${col}" data-col="${col}">
                         ${Array.from({ length: 12 }, (_, i) => `<div class="drum-item" data-col="${col}" data-i="${i}"></div>`).join('')}
                     </div>
-                    <div class="drum-name">${{ notes: 'notes', set: 'scale', deg: 'degrees' }[col]}</div>
+                    <div class="drum-name">${{ notes: 'notes', set: 'your scale' }[col]}</div>
                 </div>`).join('') + '<div class="window"></div>';
             box.addEventListener('pointerdown', drumDown);
             box.addEventListener('pointermove', drumMove);
             box.addEventListener('pointerup', drumUp);
             box.addEventListener('pointercancel', () => {
+                if (anim.drag) clearTimeout(anim.drag.timer);
                 anim.drag = null;
                 spinDrums();
             });
         }
 
-        // What each face shows. Faces of the scale drum are numbered from where the drum began
-        // (pc = face + setTurns), the degree drum from the 1 (step = face).
+        // The scale drum's faces are numbered from where the drum began: pc = face + setTurns
         function renderDrums() {
             const box = document.getElementById('drums');
             if (box.hidden || !box.children.length) return;
             const steps = stepsFromRoot();
             const labels = degreeLabels(steps);
             const spelled = spell(state.root, steps);
-            const nameOf = {};
-            steps.forEach((s, i) => nameOf[mod12(state.root + s)] = spelled[i]);
+            const nameOf = {}, degreeOf = {};
+            steps.forEach((s, i) => {
+                nameOf[mod12(state.root + s)] = spelled[i];
+                degreeOf[mod12(state.root + s)] = labels[i];
+            });
             const flats = spelled.some(n => n.includes('♭'));
-            const lit = new Set(state.notes);
             box.querySelectorAll('.drum-item').forEach(item => {
                 const i = Number(item.dataset.i);
                 if (item.dataset.col === 'notes') {
                     item.dataset.pc = i;
                     item.innerHTML = `<span class="note${nameOf[i] ? '' : ' out'}">${nameOf[i] || (flats ? FLAT_NAMES : SHARP_NAMES)[i]}</span>`;
-                } else if (item.dataset.col === 'set') {
+                } else {
                     const pc = mod12(i + setTurns);
                     item.dataset.pc = pc;
-                    item.innerHTML = `<span class="dot${lit.has(pc) ? (pc === state.root ? ' root' : '') : ' off'}"></span>`;
-                } else {
-                    const pc = mod12(state.root + i);
-                    item.dataset.pc = pc;
-                    const k = steps.indexOf(i);
-                    item.innerHTML = k < 0 ? '<span class="deg none"></span>' : `<span class="deg${i === 0 ? ' one' : ''}">${labels[k]}</span>`;
+                    item.innerHTML = pc in degreeOf ? `<span class="deg${pc === state.root ? ' one' : ''}">${degreeOf[pc]}</span>` : '<span class="dot off"></span>';
                 }
             });
             spinDrums();
@@ -1614,13 +1688,11 @@
         function placeDrums() {
             const box = document.getElementById('drums');
             const off = anim.drag ? anim.drag.offset : 0;
-            const keyDrag = anim.drag && anim.drag.col !== 'deg';
             box.querySelectorAll('.drum-item').forEach(item => {
                 const i = Number(item.dataset.i);
-                const col = item.dataset.col;
-                let v = col === 'notes' ? i : col === 'set' ? i + anim.set + (keyDrag ? off : 0) : i + anim.one + (anim.drag ? off : 0);
-                let turn = ((v - anim.cam) % 12 + 18) % 12 - 6;    // faces from the window, -6 to 6
-                const a = turn * Math.PI / 12;                      // half the drum's angle
+                const v = item.dataset.col === 'notes' ? i : i + anim.set + off;
+                const turn = ((v - anim.cam) % 12 + 18) % 12 - 6;   // faces from the window, -6 to 6
+                const a = turn * Math.PI / 12;                       // half the drum's angle
                 const y = -DRUM_H * Math.sin(a);
                 const squash = Math.max(0.02, Math.cos(a));
                 item.style.transform = `translateY(${y.toFixed(1)}px) scaleY(${squash.toFixed(3)})`;
@@ -1637,8 +1709,8 @@
                     anim[key] = Math.abs(d) < 0.002 ? target : anim[key] + d * 0.14;
                     return Math.abs(d) >= 0.002;
                 };
-                // While a drum is in your hand, the window waits
-                const moving = [ease('set', setTurns), ease('one', oneTurns), anim.drag ? false : ease('cam', oneTurns)].some(Boolean);
+                // While the drum is in your hand, the window waits
+                const moving = [ease('set', setTurns), anim.drag ? false : ease('cam', oneTurns)].some(Boolean);
                 placeDrums();
                 drumFrame = moving || anim.drag ? requestAnimationFrame(step) : null;
             };
@@ -1652,15 +1724,24 @@
             const drum = event.target.closest('.drum');
             if (!drum) return;
             anim.drag = { col: drum.dataset.col, y: event.clientY, offset: 0, moved: 0, item };
+            const pc = item ? Number(item.dataset.pc) : null;
+            if (drum.dataset.col === 'set' && item && state.notes.includes(pc)) {
+                anim.drag.timer = setTimeout(() => {
+                    if (!anim.drag || anim.drag.moved >= 6) return;
+                    anim.drag.held = true;
+                    if (pc !== state.root) moveOneTo(pc);
+                }, HOLD_MS);
+            }
             event.currentTarget.setPointerCapture(event.pointerId);
             spinDrums();
         }
 
         function drumMove(event) {
-            if (!anim.drag) return;
+            if (!anim.drag || anim.drag.col !== 'set') return;
             const dy = event.clientY - anim.drag.y;
             anim.drag.moved = Math.max(anim.drag.moved, Math.abs(dy));
             if (anim.drag.moved < 6) return;
+            clearTimeout(anim.drag.timer);
             anim.drag.offset = -dy / ROW;
         }
 
@@ -1668,29 +1749,20 @@
             const drag = anim.drag;
             if (!drag) return;
             anim.drag = null;
+            clearTimeout(drag.timer);
+            if (drag.held) return spinDrums();
             if (drag.moved < 6) {
-                if (!drag.item) return spinDrums();
-                const pc = Number(drag.item.dataset.pc);
-                if (drag.col === 'notes') playNote(pc);
-                else if (drag.col === 'set') toggleNote(pc);
-                else if (state.notes.includes(pc) && pc !== state.root) moveOneTo(pc);
-                else playNote(pc);
+                if (drag.item) {
+                    const pc = Number(drag.item.dataset.pc);
+                    if (drag.col === 'notes') playNote(pc);
+                    else toggleNote(pc);
+                }
                 return spinDrums();
             }
+            // Keep the drum where your hand left it, then let it settle
+            anim.set += drag.offset;
             const turns = Math.round(drag.offset);
-            if (drag.col !== 'deg') {
-                // Keep the drums where your hand left them, then let them settle
-                anim.set += drag.offset;
-                anim.one += drag.offset;
-                if (turns) transpose(turns);
-            } else {
-                anim.one += drag.offset;
-                const target = mod12(state.root + turns);
-                const steps = state.notes.map(n => mod12(n - target));
-                const nearest = steps.reduce((a, b) => Math.min(a, 12 - a) <= Math.min(b, 12 - b) ? a : b);
-                const landing = mod12(target + (nearest > 6 ? nearest - 12 : nearest));
-                if (landing !== state.root) moveOneTo(landing, turns < 0 ? -1 : 1);
-            }
+            if (turns) transpose(turns);
             spinDrums();
         }
 
@@ -1699,11 +1771,8 @@
             const svg = document.getElementById('wheel');
             if (!document.getElementById('wheelWrap').hidden) {
                 const [x, y] = polar(R_SET, pc);
-                const ring = el('circle', { cx: x, cy: y, r: 17, class: 'ring-pulse' }, svg);
+                const ring = el('circle', { cx: x, cy: y, r: 21, class: 'ring-pulse' }, svg);
                 setTimeout(() => ring.remove(), 800);
-                const [dx, dy] = polar(R_DEG, pc);
-                const ring2 = el('circle', { cx: dx, cy: dy, r: 16, class: 'ring-pulse' }, svg);
-                setTimeout(() => ring2.remove(), 800);
             }
             document.querySelectorAll(`#drums .drum-item[data-pc="${pc}"]`).forEach(item => {
                 if (item.dataset.col === 'notes') return;
@@ -1714,7 +1783,7 @@
             });
         }
 
-                // ---- Dragging the rings ----
+        // ---- Dragging and holding ----
         function angleAt(event) {
             const box = document.getElementById('wheel').getBoundingClientRect();
             const x = (event.clientX - box.left) / box.width * 400 - C;
@@ -1722,27 +1791,28 @@
             return { deg: Math.atan2(y, x) * 180 / Math.PI + 90, r: Math.hypot(x, y) };
         }
 
-        function ringAt(r) {
-            if (r > R_NAMES - 20) return 'names';
-            if (r > R_DEG + 26) return 'set';
-            if (r > 44) return 'deg';
-            return null;
-        }
-
-        function slotAt(deg) {
-            return mod12(Math.round(deg / 30));
-        }
+        const slotAt = deg => mod12(Math.round(deg / 30));
+        const HOLD_MS = 450;
 
         const wrap = document.getElementById('wheelWrap');
         wrap.addEventListener('pointerdown', event => {
             const { deg, r } = angleAt(event);
-            const ring = ringAt(r);
-            if (!ring) return;
-            drag = { ring, start: deg, last: deg, moved: 0, id: event.pointerId };
+            if (r > 197) return;
+            const ring = r > R_NAMES - 20 ? 'names' : 'set';
+            const pc = slotAt(deg);
+            drag = { ring, last: deg, moved: 0, pc, onNote: ring === 'set' && r > R_HUB && Math.abs(r - R_SET) < 30 };
+            // Hold a lit note to make it the 1
+            if (drag.onNote && state.notes.includes(pc)) {
+                drag.timer = setTimeout(() => {
+                    if (!drag || Math.abs(drag.moved) >= 6) return;
+                    drag.held = true;
+                    if (pc !== state.root) moveOneTo(pc);
+                }, HOLD_MS);
+            }
             wrap.setPointerCapture(event.pointerId);
         });
         wrap.addEventListener('pointermove', event => {
-            if (!drag || drag.ring === 'names') return;
+            if (!drag || drag.ring !== 'set') return;
             const { deg } = angleAt(event);
             let d = deg - drag.last;
             if (d > 180) d -= 360;
@@ -1750,51 +1820,30 @@
             drag.last = deg;
             drag.moved += d;
             if (Math.abs(drag.moved) < 6) return;
-            const g = document.getElementById(drag.ring === 'set' ? 'setRing' : 'degRing');
+            clearTimeout(drag.timer);
+            const g = document.getElementById('setRing');
             g.classList.remove('ease');
-            const base = (drag.ring === 'set' ? setTurns : oneTurns) * 30;
-            g.style.transform = `rotate(${base + drag.moved}deg)`;
-            if (drag.ring === 'deg') g.querySelectorAll('.upright').forEach(t => t.style.transform = `rotate(${-(base + drag.moved)}deg)`);
+            const turn = setTurns * 30 + drag.moved;
+            g.style.transform = `rotate(${turn}deg)`;
+            g.querySelectorAll('.upright').forEach(t => t.style.transform = `rotate(${-turn}deg)`);
         });
-        wrap.addEventListener('pointerup', event => {
+        wrap.addEventListener('pointerup', () => {
             if (!drag) return;
-            const { deg } = angleAt(event);
             const d = drag;
             drag = null;
+            clearTimeout(d.timer);
+            if (d.held) return;
             if (Math.abs(d.moved) < 6) {
-                // A tap
-                const pc = slotAt(deg);
-                if (d.ring === 'names') playNote(pc);
-                else if (d.ring === 'set') toggleNote(pc);
-                else if (d.ring === 'deg') {
-                    if (state.notes.includes(pc) && pc !== state.root) moveOneTo(pc);
-                    else playNote(pc);
-                }
+                if (d.ring === 'names') playNote(d.pc);
+                else if (d.onNote) toggleNote(d.pc);
                 return;
             }
             const turns = Math.round(d.moved / 30);
-            if (d.ring === 'set') {
-                if (turns) transpose(turns);
-                else renderWheel(false);
-            } else {
-                // The 1 lands on the lit note nearest where it was let go
-                const target = mod12(state.root + turns);
-                const steps = state.notes.map(n => mod12(n - target));
-                const nearest = steps.reduce((a, b) => Math.min(a, 12 - a) <= Math.min(b, 12 - b) ? a : b);
-                const landing = mod12(target + (nearest > 6 ? nearest - 12 : nearest));
-                let delta = mod12(landing - state.root);
-                if (turns < 0 && delta > 0) delta -= 12;
-                if (turns > 0 && delta > 6) delta -= 12;
-                if (landing === state.root) renderWheel(false);
-                else {
-                    state.root = landing;
-                    oneTurns += delta;
-                    update(false);
-                    playNote(landing, 0.5);
-                }
-            }
+            if (turns) transpose(turns);
+            else renderWheel(false);
         });
         wrap.addEventListener('pointercancel', () => {
+            if (drag) clearTimeout(drag.timer);
             drag = null;
             renderWheel(false);
         });
@@ -1873,20 +1922,45 @@
             return count(vsMajor) <= count(vsMinor) ? say(vsMajor, 'major') : say(vsMinor, 'minor');
         }
 
+        function setModeCompare(c) {
+            state.modeCompare = c;
+            save();
+            renderModes();
+        }
+
+        const COMPARE_NOTE = {
+            above: 'Marked: the one note that changed from the mode above.',
+            major: 'Filled: notes that differ from major. Outlined: the one note that changed from the mode above.',
+            minor: 'Filled: notes that differ from natural minor. Outlined: the one note that changed from the mode above.'
+        };
+
         function renderModes() {
+            const compare = state.modeCompare || 'above';
+            document.querySelectorAll('#modeCompare button').forEach((b, i) => b.classList.toggle('on', ['above', 'major', 'minor'][i] === compare));
+            document.getElementById('compareNote').textContent = COMPARE_NOTE[compare];
             const current = maskOf(stepsFromRoot());
-            const key = rootName();
             let html = '<tr><th></th>' + [1, 2, 3, 4, 5, 6, 7].map(n => `<th>${n}</th>`).join('') + '</tr>';
             LADDER.forEach((mode, row) => {
-                // Marked: the notes the line under it names, against major or minor, whichever is closer
-                const a = diffAgainst(mode.steps, MAJOR).filter(Boolean).length;
-                const b = diffAgainst(mode.steps, MINOR).filter(Boolean).length;
-                const ref = a <= b ? MAJOR : MINOR;
+                const above = row > 0 ? LADDER[row - 1] : null;
+                const ref = compare === 'major' ? MAJOR : compare === 'minor' ? MINOR : above ? above.steps : mode.steps;
                 const labels = degreeLabels(mode.steps);
-                const cells = mode.steps.map((s, i) => `<td><span class="cell${s !== ref[i] ? ' diff' : ''}">${labels[i]}</span></td>`).join('');
+                const cells = mode.steps.map((s, i) => {
+                    const differs = s !== ref[i];
+                    const stepped = compare !== 'above' && above && above.steps[i] !== s;
+                    return `<td><span class="cell${differs ? ' diff' : ''}${stepped ? ' step' : ''}">${labels[i]}</span></td>`;
+                }).join('');
+                let line;
+                if (compare === 'above') {
+                    const i = above ? mode.steps.findIndex((s, k) => s !== above.steps[k]) : -1;
+                    line = above ? `${above.name} with its ${degreeLabels(above.steps)[i]} lowered` : 'the brightest of the seven';
+                } else {
+                    const changes = mode.steps.map((s, i) => s !== ref[i] ? labels[i] : null).filter(Boolean);
+                    const base = compare === 'major' ? 'major' : 'minor';
+                    line = changes.length ? `${base} with ${changes.join(' ')}` : `the ${compare === 'major' ? 'major scale' : 'natural minor'} itself`;
+                }
                 const isCurrent = maskOf(mode.steps) === current;
                 html += `<tr class="${isCurrent ? 'current' : ''}" onclick="pickMode(${row})"><td class="mode-name"><b>${mode.name}</b></td>${cells}</tr>`;
-                html += `<tr class="${isCurrent ? 'current' : ''}" onclick="pickMode(${row})"><td class="mode-line" colspan="8">${describe(mode)} · ${mode.feel}</td></tr>`;
+                html += `<tr class="${isCurrent ? 'current' : ''}" onclick="pickMode(${row})"><td class="mode-line" colspan="8">${line} · ${mode.feel}</td></tr>`;
             });
             document.getElementById('modesTable').innerHTML = html;
         }
@@ -1927,7 +2001,7 @@
             document.querySelectorAll('#chordSize button').forEach((b, i) => b.classList.toggle('on', [3, 4][i] === state.chordSize));
             const steps = stepsFromRoot();
             const box = document.getElementById('chords');
-            renderLine('chordLine', null);
+            renderLine('chordLine', null, 'key');
             if (steps.length < 5) {
                 box.innerHTML = '<p class="hint">Too few notes to stack in thirds. Add a few on the wheel.</p>';
                 chordList = [];
@@ -1965,50 +2039,77 @@
         }
 
         // ---- The number line ----
-        // C to B, left to right. Each note of the scale is a circle holding its degree, named by
-        // its letter, so moving around the circle of fifths you see the one note that changes
-        // slide over a half step while the rest stay put. lit: notes to fill in (a chord).
-        function renderLine(id, lit) {
+        // Two ways to lay it out. 'key' (the chords card): from the 1 to the next 1, so the
+        // degrees hold still when the key changes and the letter names slide along under them;
+        // a new scale moves the numbers. 'letters' (the circle of fifths): C to B, one circle per
+        // letter, so going round the circle you watch the one note that changes slide over. An
+        // arrow at each end: it keeps going, up and down, forever. lit: notes to fill in.
+        function renderLine(id, lit, layout) {
             const box = document.getElementById(id);
             const steps = stepsFromRoot();
             const labels = degreeLabels(steps);
             const spelled = spell(state.root, steps);
             const flats = spelled.some(n => n.includes('♭'));
-            const at = pc => (pc / 11 * 100).toFixed(2) + '%';
-            if (!box.dataset.built) {
-                box.dataset.built = '1';
-                box.innerHTML = Array.from({ length: 12 }, (_, pc) => `<span class="tick" style="left:${at(pc)}"></span><span class="tick-name" data-pc="${pc}" style="left:${at(pc)}"></span>`).join('');
+            const byKey = layout === 'key';
+            const span = byKey ? 12 : 11;
+            const at = pos => (pos / span * 100).toFixed(2) + '%';
+            const posOf = pc => byKey ? mod12(pc - state.root) : pc;
+            if (box.dataset.layout !== layout) {
+                box.dataset.layout = layout;
+                box.innerHTML = '<span class="line-arrow left"></span><span class="line-arrow right"></span>' +
+                    Array.from({ length: span + 1 }, (_, pos) => `<span class="tick" style="left:${at(pos)}"></span>`).join('') +
+                    Array.from({ length: 12 }, (_, pc) => `<span class="tick-name" data-pc="${pc}"></span>`).join('') +
+                    (byKey ? '<span class="tick-name octave"></span>' : '');
             }
             const nameOf = {};
             steps.forEach((s, i) => nameOf[mod12(state.root + s)] = spelled[i]);
-            box.querySelectorAll('.tick-name').forEach(t => {
+            box.querySelectorAll('.tick-name[data-pc]').forEach(t => {
                 const pc = Number(t.dataset.pc);
+                const pos = posOf(pc);
+                // A label wrapping from one end to the other jumps rather than gliding across
+                const last = t.dataset.pos === undefined ? pos : Number(t.dataset.pos);
+                if (Math.abs(pos - last) > 6) {
+                    t.style.transition = 'none';
+                    t.style.left = at(pos);
+                    void t.offsetWidth;
+                    t.style.transition = '';
+                } else {
+                    t.style.left = at(pos);
+                }
+                t.dataset.pos = pos;
                 t.textContent = nameOf[pc] || (flats ? FLAT_NAMES : SHARP_NAMES)[pc];
                 t.classList.toggle('in', Boolean(nameOf[pc]));
             });
-            // One circle per letter with seven notes (so F becoming F♯ is the F circle moving), else per degree
-            const keyOf = i => steps.length === 7 ? spelled[i][0] : 'd' + i;
+            if (byKey) {
+                const octave = box.querySelector('.tick-name.octave');
+                octave.style.left = at(12);
+                octave.textContent = spelled[0];
+                octave.classList.add('in');
+            }
+            const keyOf = i => byKey ? 'd' + i : steps.length === 7 ? spelled[i][0] : 'd' + i;
+            const entries = steps.map((s, i) => ({ key: keyOf(i), pc: mod12(state.root + s), label: labels[i] }));
+            if (byKey) entries.push({ key: 'octave', pc: state.root, label: '1', pos: 12, ghost: true });
             const keep = new Set();
-            steps.forEach((s, i) => {
-                const pc = mod12(state.root + s);
-                const key = keyOf(i);
-                keep.add(key);
-                let dot = box.querySelector(`.line-dot[data-key="${key}"]`);
+            entries.forEach(entry => {
+                keep.add(entry.key);
+                const pos = entry.pos ?? posOf(entry.pc);
+                let dot = box.querySelector(`.line-dot[data-key="${entry.key}"]`);
                 const fresh = !dot;
                 if (fresh) {
                     dot = document.createElement('span');
                     dot.className = 'line-dot';
-                    dot.dataset.key = key;
-                    dot.style.left = at(pc);
+                    dot.dataset.key = entry.key;
+                    dot.style.left = at(pos);
                     box.appendChild(dot);
                 }
-                const moved = !fresh && dot.dataset.pc !== undefined && Number(dot.dataset.pc) !== pc;
-                dot.dataset.pc = pc;
-                dot.style.left = at(pc);
-                dot.textContent = labels[i];
-                dot.classList.toggle('lit', Boolean(lit && lit.includes(pc)));
-                dot.classList.toggle('moved', moved);
-                if (moved) setTimeout(() => dot.classList.remove('moved'), 1400);
+                const moved = !fresh && Number(dot.dataset.pos) !== pos;
+                dot.dataset.pos = pos;
+                dot.style.left = at(pos);
+                dot.textContent = entry.label;
+                dot.classList.toggle('ghost', Boolean(entry.ghost));
+                dot.classList.toggle('lit', Boolean(lit && lit.includes(entry.pc)));
+                dot.classList.toggle('moved', moved && !byKey);
+                if (moved && !byKey) setTimeout(() => dot.classList.remove('moved'), 1400);
             });
             box.querySelectorAll('.line-dot').forEach(dot => { if (!keep.has(dot.dataset.key)) dot.remove(); });
         }
@@ -2035,7 +2136,29 @@
         function renderFifths() {
             const svg = document.getElementById('fifths');
             svg.innerHTML = '';
-            const c = 170;
+            const c = 200;
+            // Fifths clockwise round the right, fourths counterclockwise round the left
+            const defs = el('defs', {}, svg);
+            const marker = el('marker', { id: 'arrowhead', viewBox: '0 0 10 10', refX: 7, refY: 5, markerWidth: 6, markerHeight: 6, orient: 'auto-start-reverse' }, defs);
+            el('path', { d: 'M0 1 L9 5 L0 9 Z', fill: '#8b7759' }, marker);
+            const arcPoint = (deg, r) => {
+                const a = (deg - 90) * Math.PI / 180;
+                return [c + r * Math.cos(a), c + r * Math.sin(a)];
+            };
+            const arc = (from, to, r, sweep) => {
+                const [x1, y1] = arcPoint(from, r), [x2, y2] = arcPoint(to, r);
+                return `M${x1.toFixed(1)} ${y1.toFixed(1)} A${r} ${r} 0 0 ${sweep} ${x2.toFixed(1)} ${y2.toFixed(1)}`;
+            };
+            el('path', { d: arc(22, 158, 177, 1), fill: 'none', stroke: '#8b7759', 'stroke-width': 1.3, 'marker-end': 'url(#arrowhead)' }, svg);
+            el('path', { d: arc(338, 202, 177, 0), fill: 'none', stroke: '#8b7759', 'stroke-width': 1.3, 'marker-end': 'url(#arrowhead)' }, svg);
+            // The words ride just outside the arrows, reading top to bottom on the right, bottom to top on the left
+            el('path', { id: 'fifthsWords', d: arc(40, 140, 183, 1), fill: 'none' }, defs);
+            el('path', { id: 'fourthsWords', d: arc(220, 320, 183, 1), fill: 'none' }, defs);
+            [['fifthsWords', 'a fifth up each step'], ['fourthsWords', 'a fourth up each step']].forEach(([id, words]) => {
+                const t = el('text', { class: 'sig', 'font-size': 11, dy: -4 }, svg);
+                const tp = el('textPath', { href: '#' + id, startOffset: '50%', 'text-anchor': 'middle' }, t);
+                tp.textContent = words;
+            });
             el('circle', { cx: c, cy: c, r: 165, fill: '#f7f3e9', stroke: '#c9bda5' }, svg);
             el('circle', { cx: c, cy: c, r: 112, fill: '#fffdf7', stroke: '#c9bda5' }, svg);
             el('circle', { cx: c, cy: c, r: 66, fill: '#f1ead8', stroke: '#c9bda5' }, svg);
@@ -2070,9 +2193,11 @@
                     playScale();
                 });
             }
-            const mid = el('text', { x: c, y: c, class: 'key-name', 'font-size': 13, fill: '#8b7759' }, svg);
-            mid.textContent = 'fifths →';
-            renderLine('fifthsLine', null);
+            if (home !== null) {
+                const mid = el('text', { x: c, y: c, class: 'key-name', 'font-size': 15, fill: '#b07d2a' }, svg);
+                mid.textContent = `${KEY_NAMES[home]} major`;
+            }
+            renderLine('fifthsLine', null, 'letters');
             const text = document.getElementById('fifthsText');
             if (home === null) {
                 text.textContent = 'The wheel isn\'t holding a major scale\'s notes right now (or any of its modes), so there\'s no one key to light up.';
@@ -2208,7 +2333,7 @@
             chord.pcs.forEach((p, k) => tone(freqOf(p), t0 + k * 0.045, 2.2, 0.18));
             button.classList.add('sounding');
             setTimeout(() => button.classList.remove('sounding'), 700);
-            renderLine('chordLine', chord.pcs.map(mod12));
+            renderLine('chordLine', chord.pcs.map(mod12), 'key');
             chord.pcs.forEach(p => pulse(mod12(p), 0.9));
         }
 
@@ -2283,14 +2408,33 @@
             return state.earLevel ? INTERVALS : INTERVALS.filter(i => STARTER.includes(i.semis));
         }
 
+        function setEarRoot(r) {
+            state.earRoot = r;
+            save();
+            renderEar();
+        }
+
+        // The low note: anywhere in a comfortable range, or the 1 of the key on the wheel
+        function lowNote() {
+            if (state.earRoot === 'key') return (state.root >= 7 ? 48 : 60) + state.root;
+            return 52 + Math.floor(Math.random() * 12);
+        }
+
         function newQuestion() {
             const options = pool();
             const pick = options[Math.floor(Math.random() * options.length)];
-            const low = 52 + Math.floor(Math.random() * 12);
-            question = { interval: pick, low, answered: false };
+            question = { interval: pick, low: lowNote(), answered: false };
             showResult('');
             renderEar();
             replay();
+        }
+
+        function playInterval(semis, low) {
+            const ctx = ensureAudio();
+            const f = m => 440 * Math.pow(2, (m - 69) / 12);
+            const t = ctx.currentTime + 0.05;
+            tone(f(low), t, 1.0);
+            tone(f(low + semis), t + 0.75, 1.4);
         }
 
         // Replaced whole, so no line of an old answer is left behind
@@ -2302,16 +2446,19 @@
         }
 
         function replay() {
-            if (!question) return;
-            const ctx = ensureAudio();
-            const f = m => 440 * Math.pow(2, (m - 69) / 12);
-            const t = ctx.currentTime + 0.05;
-            tone(f(question.low), t, 1.0);
-            tone(f(question.low + question.interval.semis), t + 0.75, 1.4);
+            if (question) playInterval(question.interval.semis, question.low);
         }
 
+        // With a pair waiting, a tap is an answer; otherwise it plays that interval to learn it
         function answer(semis, button) {
-            if (!question || question.answered) return;
+            if (!question || question.answered) {
+                const interval = INTERVALS.find(i => i.semis === semis);
+                playInterval(semis, lowNote());
+                document.querySelectorAll('.choice').forEach(c => c.classList.remove('right', 'wrong', 'heard'));
+                button.classList.add('heard');
+                showResult(`A <b>${interval.name}</b>: ${interval.tune}.`);
+                return;
+            }
             const right = semis === question.interval.semis;
             button.classList.add(right ? 'right' : 'wrong');
             if (right) {
@@ -2331,7 +2478,9 @@
             document.querySelectorAll('#earLevel button').forEach((b, i) => b.classList.toggle('on', i === state.earLevel));
             document.getElementById('earAgain').hidden = !question;
             document.getElementById('earPlay').textContent = question ? 'new pair' : 'play a pair';
-            document.getElementById('choices').innerHTML = question ? pool().map(i => `<button class="choice" onclick="answer(${i.semis}, this)">${i.name}</button>`).join('') : '';
+            document.querySelectorAll('#earRoot button').forEach((b, i) => b.classList.toggle('on', ['random', 'key'][i] === (state.earRoot || 'random')));
+            document.getElementById('earKey').textContent = rootName();
+            document.getElementById('choices').innerHTML = pool().map(i => `<button class="choice" onclick="answer(${i.semis}, this)">${i.name}</button>`).join('');
         }
 
         // ---- Start ----
