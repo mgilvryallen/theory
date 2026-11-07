@@ -2,17 +2,23 @@
   <rect width="64" height="64" fill="#f7f3e9"/>
   <rect x="4" y="4" width="56" height="56" rx="11" fill="none" stroke="#4a3f2f" stroke-width="1.6"/>
   <rect x="7.5" y="7.5" width="49" height="49" rx="8" fill="none" stroke="#8b7759" stroke-width="0.9"/>
-  <g fill="#3d5a42"><circle cx="12.6" cy="12.6" r="1.4"/><circle cx="51.4" cy="12.6" r="1.4"/><circle cx="12.6" cy="51.4" r="1.4"/><circle cx="51.4" cy="51.4" r="1.4"/></g>
-  <g fill="#8b7759"><path d="M12.6 29.4 l2 2.6 l-2 2.6 l-2 -2.6 Z"/><path d="M51.4 29.4 l2 2.6 l-2 2.6 l-2 -2.6 Z"/></g>
-  <circle cx="32" cy="32" r="16.5" fill="#a0522d" stroke="#4a3f2f" stroke-width="1"/>
-  <circle cx="32" cy="32" r="8.2" fill="none" stroke="#f7f3e9" stroke-opacity="0.55" stroke-width="0.8"/>
-  <g fill="#f7f3e9" fill-opacity="0.9">
-    <circle cx="32" cy="19.5" r="1.8"/><circle cx="42.83" cy="25.75" r="1.35"/><circle cx="42.83" cy="38.25" r="1.35"/><circle cx="38.25" cy="42.83" r="1.35"/>
-    <circle cx="25.75" cy="42.83" r="1.35"/><circle cx="19.5" cy="32" r="1.35"/><circle cx="25.75" cy="21.17" r="1.35"/>
+  <g fill="#8b7759" stroke="#8b7759">
+    <ellipse cx="11.6" cy="38.2" rx="2.1" ry="1.5" transform="rotate(-20 11.6 38.2)" stroke="none"/>
+    <path d="M13.5 37.6 V27.4 q2.6 1.4 2.4 4.6" fill="none" stroke-width="0.9" stroke-linecap="round"/>
+    <ellipse cx="47.6" cy="39.4" rx="1.9" ry="1.35" transform="rotate(-20 47.6 39.4)" stroke="none"/>
+    <ellipse cx="53" cy="37.6" rx="1.9" ry="1.35" transform="rotate(-20 53 37.6)" stroke="none"/>
+    <path d="M49.3 38.9 V29.6 M54.7 37.1 V27.8" fill="none" stroke-width="0.9"/>
+    <path d="M49.3 29.6 L54.7 27.8" fill="none" stroke-width="2"/>
+  </g>
+  <circle cx="32" cy="32" r="14.8" fill="#a0522d" stroke="#4a3f2f" stroke-width="1"/>
+  <circle cx="32" cy="32" r="7.3" fill="none" stroke="#f7f3e9" stroke-opacity="0.55" stroke-width="0.8"/>
+  <g fill="#f7f3e9" fill-opacity="0.92">
+    <circle cx="32" cy="20.8" r="1.7"/><circle cx="41.7" cy="26.4" r="1.25"/><circle cx="41.7" cy="37.6" r="1.25"/><circle cx="37.6" cy="41.7" r="1.25"/>
+    <circle cx="26.4" cy="41.7" r="1.25"/><circle cx="20.8" cy="32" r="1.25"/><circle cx="26.4" cy="22.3" r="1.25"/>
   </g>
   <g fill="none" stroke="#f7f3e9" stroke-opacity="0.6" stroke-width="0.7">
-    <circle cx="38.25" cy="21.17" r="0.95"/><circle cx="44.5" cy="32" r="0.95"/><circle cx="32" cy="44.5" r="0.95"/><circle cx="21.17" cy="38.25" r="0.95"/><circle cx="21.17" cy="25.75" r="0.95"/>
+    <circle cx="37.6" cy="22.3" r="0.9"/><circle cx="43.2" cy="32" r="0.9"/><circle cx="32" cy="43.2" r="0.9"/><circle cx="22.3" cy="37.6" r="0.9"/><circle cx="22.3" cy="26.4" r="0.9"/>
   </g>
-  <path d="M32 23.2 L34.1 32 L32 34.6 L29.9 32 Z" fill="#4a3f2f"/><circle cx="32" cy="32" r="1.1" fill="#f7f3e9"/>
-  <path d="M29.2 11.8 h5.6 l-2.8 4.2 Z" fill="#3d5a42"/>
+  <path d="M32 24.2 L34 32 L32 34.4 L30 32 Z" fill="#4a3f2f"/><circle cx="32" cy="32" r="1.05" fill="#f7f3e9"/>
+  <path d="M29.4 12.6 h5.2 l-2.6 3.9 Z" fill="#4a3f2f"/>
 </svg>

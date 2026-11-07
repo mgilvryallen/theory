@@ -229,6 +229,10 @@
             transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.25, 1);
         }
 
+        .spin.ease.whizz, .spin.ease.whizz .upright {
+            transition-duration: 1.2s;
+        }
+
         .upright {
             transform-box: view-box;
         }
@@ -309,6 +313,335 @@
 
         .stepper button:hover {
             background: var(--parchment);
+        }
+
+        .card-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 10px;
+        }
+
+        /* ---- Drums: the same three rings, seen from the side ---- */
+        .drums {
+            position: relative;
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            height: 340px;
+            margin-top: 12px;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        .drum {
+            position: relative;
+            height: 100%;
+            overflow: hidden;
+            border: 1px solid var(--light-tan);
+            border-radius: 10px;
+            background: linear-gradient(180deg, #e9e0cb 0%, #fffdf7 30%, #fffdf7 70%, #e9e0cb 100%);
+            cursor: grab;
+        }
+
+        .drum.set {
+            background: linear-gradient(180deg, #e9e0cb 0%, #fffdf7 30%, #fffdf7 70%, #e9e0cb 100%);
+        }
+
+        .drum.deg {
+            background: linear-gradient(180deg, #ddd2b8 0%, #f1ead8 30%, #f1ead8 70%, #ddd2b8 100%);
+        }
+
+        /* Shade toward the top and bottom, where the drum turns away */
+        .drum::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: linear-gradient(180deg, rgba(74, 63, 47, 0.22) 0%, transparent 28%, transparent 72%, rgba(74, 63, 47, 0.22) 100%);
+        }
+
+        .drum-name {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: -22px;
+            text-align: center;
+            font-size: 12px;
+            color: var(--tan);
+            letter-spacing: 0.5px;
+        }
+
+        .drum-col {
+            position: relative;
+            height: 100%;
+        }
+
+        .window {
+            position: absolute;
+            left: -4px;
+            right: -4px;
+            top: 50%;
+            height: 46px;
+            margin-top: -23px;
+            border-top: 1px solid var(--ochre);
+            border-bottom: 1px solid var(--ochre);
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .drum-item {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 44px;
+            margin-top: -22px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            will-change: transform, opacity;
+        }
+
+        .drum-item .note {
+            font-size: 18px;
+            color: var(--heading);
+        }
+
+        .drum-item .note.out {
+            color: var(--light-tan);
+        }
+
+        .drum-item .dot {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: var(--rust);
+            border: 1px solid var(--heading);
+        }
+
+        .drum-item .dot.root {
+            background: var(--green);
+        }
+
+        .drum-item .dot.off {
+            width: 12px;
+            height: 12px;
+            background: var(--paper);
+            border-color: var(--light-tan);
+        }
+
+        .drum-item .deg {
+            min-width: 32px;
+            height: 32px;
+            padding: 0 6px;
+            border-radius: 16px;
+            background: var(--heading);
+            color: var(--parchment);
+            font-weight: bold;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0.85;
+        }
+
+        .drum-item .deg.one {
+            background: var(--green);
+            opacity: 1;
+        }
+
+        .drum-item .deg.none {
+            min-width: 5px;
+            width: 5px;
+            height: 5px;
+            padding: 0;
+            background: var(--light-tan);
+        }
+
+        .drum-item.sounding .dot,
+        .drum-item.sounding .deg {
+            animation: pulse 0.6s ease-out;
+            box-shadow: 0 0 0 4px rgba(176, 125, 42, 0.55);
+        }
+
+        @keyframes pulse {
+            from { box-shadow: 0 0 0 0 rgba(176, 125, 42, 0.9); }
+            to { box-shadow: 0 0 0 12px rgba(176, 125, 42, 0); }
+        }
+
+        /* A pulse on the wheel, where a note is sounding */
+        .ring-pulse {
+            fill: none;
+            stroke: #b07d2a;
+            stroke-width: 3;
+            transform-box: fill-box;
+            transform-origin: center;
+            animation: ring-pulse 0.7s ease-out forwards;
+        }
+
+        @keyframes ring-pulse {
+            from { transform: scale(0.9); opacity: 1; }
+            to { transform: scale(1.7); opacity: 0; }
+        }
+
+        /* ---- Key and scale pickers ---- */
+        .pickers {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 34px;
+        }
+
+        .wheel-wrap:not([hidden]) ~ .pickers {
+            margin-top: 12px;
+        }
+
+        #chordsCard .pickers {
+            margin-top: 12px;
+        }
+
+        .picker {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--light-tan);
+            border-radius: 999px;
+            padding: 2px;
+            min-width: 0;
+        }
+
+        .picker > button {
+            flex: none;
+            width: 36px;
+            height: 38px;
+            border-radius: 50%;
+            border: none;
+            background: transparent;
+            font-size: 20px;
+            color: var(--heading);
+            cursor: pointer;
+        }
+
+        .pick {
+            position: relative;
+            flex: 1;
+            min-width: 0;
+            text-align: center;
+            line-height: 1.15;
+            cursor: pointer;
+        }
+
+        .pick-label {
+            display: block;
+            font-size: 11px;
+            color: var(--tan);
+            letter-spacing: 0.5px;
+        }
+
+        .pick-value {
+            display: block;
+            font-family: 'Rug Pull', Georgia, serif;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            color: var(--heading);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .pick-value::after {
+            content: ' ▾';
+            font-family: 'Lumios Typewriter', Georgia, serif;
+            color: var(--tan);
+        }
+
+        /* The native list opens on tap; the select itself is invisible over the label */
+        .pick select {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .btn.icon {
+            width: 44px;
+            height: 38px;
+            padding: 0;
+        }
+
+        .btn.icon svg {
+            width: 18px;
+            height: 18px;
+            fill: currentColor;
+        }
+
+        /* ---- The number line: twelve notes, C to B ---- */
+        .line {
+            position: relative;
+            height: 64px;
+            margin: 18px 6px 0;
+        }
+
+        .line::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 18px;
+            border-top: 1px solid var(--light-tan);
+        }
+
+        .tick {
+            position: absolute;
+            top: 14px;
+            width: 1px;
+            height: 9px;
+            background: var(--light-tan);
+        }
+
+        .tick-name {
+            position: absolute;
+            top: 40px;
+            transform: translateX(-50%);
+            font-size: 13px;
+            color: var(--light-tan);
+            white-space: nowrap;
+            transition: color 0.3s;
+        }
+
+        .tick-name.in {
+            color: var(--heading);
+        }
+
+        .line-dot {
+            position: absolute;
+            top: 6px;
+            width: 25px;
+            height: 25px;
+            margin-left: -12.5px;
+            border-radius: 50%;
+            background: var(--paper);
+            border: 1.5px solid var(--accent);
+            color: var(--heading);
+            font-size: 12px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: left 0.6s cubic-bezier(0.3, 0.7, 0.25, 1), background 0.2s, color 0.2s;
+        }
+
+        .line-dot.lit {
+            background: var(--accent);
+            color: var(--parchment);
+        }
+
+        .line-dot.moved {
+            box-shadow: 0 0 0 3px rgba(176, 125, 42, 0.6);
         }
 
         .play-row {
@@ -642,67 +975,35 @@
 
         <!-- The wheel -->
         <div class="card" style="--accent: var(--rust)">
-            <h2>The Wheel</h2>
-            <p class="hint"><b>Outside:</b> all twelve notes. <b>Middle:</b> the ones in your scale, lit. Tap one to add it or take it out; drag the ring to carry the whole scale to a new key. <b>Inside:</b> the scale's degrees, counted from the <b class="num">1</b>. Drag it to move the 1 and keep every note where it is: that's a new mode.</p>
+            <div class="card-head">
+                <h2>The Wheel</h2>
+                <div class="toggle" id="viewToggle">
+                    <button onclick="setView('wheel')">wheel</button><button onclick="setView('drums')">drums</button>
+                </div>
+            </div>
+            <p class="hint" id="wheelHint"></p>
 
             <div class="wheel-wrap" id="wheelWrap">
                 <svg id="wheel" viewBox="0 0 400 400" role="img" aria-label="Scale wheel"></svg>
             </div>
+            <div class="drums" id="drums" hidden></div>
 
-            <div class="controls">
-                <div class="stepper">
-                    <button onclick="transpose(-1)" aria-label="Key down a half step">‹</button>
-                    <span>key<br><span id="keyLabel"></span></span>
-                    <button onclick="transpose(1)" aria-label="Key up a half step">›</button>
-                </div>
-                <div class="stepper">
-                    <button onclick="stepOne(-1)" aria-label="Move the 1 down">‹</button>
-                    <span>the <span class="num">1</span><br><span id="oneLabel"></span></span>
-                    <button onclick="stepOne(1)" aria-label="Move the 1 up">›</button>
-                </div>
-            </div>
+            <div class="pickers"></div>
 
             <div class="play-row">
-                <button class="btn" onclick="playScale()">▶ Play it</button>
-                <button class="btn quiet" id="droneBtn" onclick="toggleDrone()">drone under</button>
-                <button class="btn quiet" onclick="setScale(state.root, [0, 2, 4, 5, 7, 9, 11])">back to major</button>
+                <button class="btn icon" id="playBtn" onclick="togglePlay()" aria-label="Play"></button>
+                <button class="btn quiet" id="droneBtn" onclick="toggleDrone()">drone</button>
+                <button class="btn quiet" onclick="setScale(state.root, MAJOR, true)">back to major</button>
             </div>
 
             <div class="name-box" id="nameBox"></div>
         </div>
 
-        <!-- Two roads to minor -->
-        <div class="card" style="--accent: var(--plum)">
-            <h2>Two Roads to Minor</h2>
-            <p class="hint">Start from a major scale. You can get to minor two ways, and they don't land in the same place.</p>
-            <h3>Lower the <span class="num">3, 6</span> and <span class="num">7</span></h3>
-            <p class="hint">Keep the 1 where it is and drop three notes a half step. Same home, darker notes: <span id="parallelText">C major becomes C minor</span>. That's its <b>parallel</b> minor.</p>
-            <div class="row" style="margin-top: 10px">
-                <button class="btn" style="--accent: var(--plum)" onclick="roadOne()">Show me</button>
-            </div>
-            <h3>Move the <span class="num">1</span> down to the <span class="num">6</span></h3>
-            <p class="hint">Keep every note and slide the 1 down to the sixth. Same notes, a new home: <span id="relativeText">C major becomes A minor</span>. That's its <b>relative</b> minor, and it has the same key signature.</p>
-            <div class="row" style="margin-top: 10px">
-                <button class="btn" style="--accent: var(--plum)" onclick="roadTwo()">Show me</button>
-            </div>
-        </div>
-
         <!-- Modes side by side -->
         <div class="card" style="--accent: var(--woad)">
             <h2>The Modes, Side by Side</h2>
-            <p class="hint">The seven modes of the major scale, brightest at the top. Each one down lowers a single note (circled) from the one above it. Tap a row to put it on the wheel.</p>
-            <div class="row" style="margin-top: 12px; justify-content: space-between">
-                <span class="hint">compared to</span>
-                <div class="toggle" id="compareToggle">
-                    <button onclick="setCompare('closest')">closest</button><button onclick="setCompare('major')">major</button><button onclick="setCompare('minor')">minor</button>
-                </div>
-            </div>
+            <p class="hint">The seven modes of the major scale, brightest at the top: each one down lowers one note of the one above. The marked notes are what makes each one differ from plain major or minor, as the line under it says. Tap a row to put it on the wheel.</p>
             <table class="modes" id="modesTable"></table>
-            <div class="legend">
-                <span><span class="cell diff">♭</span> lower than the comparison</span>
-                <span><span class="cell diff up">♯</span> higher</span>
-                <span><span class="cell step">&nbsp;</span> the one note this step lowers</span>
-            </div>
         </div>
 
         <!-- Chords -->
@@ -715,6 +1016,8 @@
                 </div>
             </div>
             <div class="chords" id="chords"></div>
+            <div class="line" id="chordLine"></div>
+            <div class="pickers"></div>
         </div>
 
         <!-- Circle of fifths -->
@@ -722,6 +1025,7 @@
             <h2>The Circle of Fifths</h2>
             <p class="hint">Each step clockwise is a fifth up and one more sharp (or one fewer flat). Neighbors share six of their seven notes, which is why songs move to them so easily. Outside: major keys. Inside: their relative minors. Tap one to put it on the wheel.</p>
             <svg id="fifths" viewBox="0 0 340 340" role="img" aria-label="Circle of fifths"></svg>
+            <div class="line" id="fifthsLine"></div>
             <p class="hint" id="fifthsText" style="margin-top: 8px"></p>
         </div>
 
@@ -731,7 +1035,7 @@
             <p class="hint">Two notes, one after the other. How far apart are they? Each one comes with a tune that starts on it, to help it stick.</p>
             <div class="row" style="margin-top: 12px; justify-content: space-between">
                 <div class="row">
-                    <button class="btn" style="--accent: var(--teal)" onclick="newQuestion()" id="earPlay">▶ New pair</button>
+                    <button class="btn" style="--accent: var(--teal)" onclick="newQuestion()" id="earPlay">new pair</button>
                     <button class="btn quiet" onclick="replay()" id="earAgain" hidden>again</button>
                 </div>
                 <div class="toggle" id="earLevel">
@@ -851,9 +1155,9 @@
         function loadState() {
             try {
                 const saved = JSON.parse(localStorage.getItem(STORE) || '{}');
-                if (Array.isArray(saved.notes) && saved.notes.length && saved.notes.includes(saved.root)) return { compare: 'closest', chordSize: 3, earLevel: 0, ...saved };
+                if (Array.isArray(saved.notes) && saved.notes.length && saved.notes.includes(saved.root)) return { chordSize: 3, earLevel: 0, view: 'wheel', ...saved };
             } catch (e) {}
-            return { notes: [...MAJOR], root: 0, compare: 'closest', chordSize: 3, earLevel: 0 };
+            return { notes: [...MAJOR], root: 0, chordSize: 3, earLevel: 0, view: 'wheel' };
         }
         const state = loadState();
         // Turns of each ring so far, in twelfths. They only add up (never wrap), so a ring always
@@ -864,7 +1168,7 @@
 
         function save() {
             try {
-                localStorage.setItem(STORE, JSON.stringify({ notes: state.notes, root: state.root, compare: state.compare, chordSize: state.chordSize, earLevel: state.earLevel }));
+                localStorage.setItem(STORE, JSON.stringify({ notes: state.notes, root: state.root, chordSize: state.chordSize, earLevel: state.earLevel, view: state.view }));
             } catch (e) {}
         }
 
@@ -1070,25 +1374,32 @@
         function update(instant) {
             save();
             renderWheel(instant);
+            renderDrums();
+            renderPickers();
             renderName();
             renderModes();
             renderChords();
             renderFifths();
             const key = rootName();
-            document.getElementById('keyLabel').textContent = key;
-            const known = SCALE_BY_MASK.get(maskOf(stepsFromRoot()));
-            document.getElementById('oneLabel').textContent = known ? known.name.replace('Natural ', '') : 'unnamed';
             document.getElementById('droneKey').textContent = key;
             document.getElementById('droneLink').href = `../drone/#key=${encodeURIComponent(DRONE_KEYS[state.root])}`;
             if (droneNodes) moveDrone();
         }
 
+        // A jump from a list whizzes the wheel the long way round, a full turn extra
+        function whizz(on) {
+            ['setRing', 'degRing'].forEach(id => document.getElementById(id).classList.toggle('whizz', on));
+        }
+
         // Carry the whole scale up or down: same mode, new key
-        function transpose(k) {
+        function transpose(k, spin) {
+            stopScale();
             state.notes = state.notes.map(n => mod12(n + k));
             state.root = mod12(state.root + k);
-            setTurns += k;
-            oneTurns += k;
+            const extra = spin ? 12 * (k < 0 ? -1 : 1) : 0;
+            setTurns += k + extra;
+            oneTurns += k + extra;
+            whizz(Boolean(spin));
             update(false);
             playNote(state.root, 0.5);
         }
@@ -1101,18 +1412,21 @@
             moveOneTo(mod12(state.root + next), dir);
         }
 
-        function moveOneTo(pc, dir) {
+        function moveOneTo(pc, dir, spin) {
             if (!state.notes.includes(pc)) return;
+            stopScale();
             let delta = mod12(pc - state.root);
             if (dir < 0 && delta > 0) delta -= 12;
             if (dir === undefined && delta > 6) delta -= 12;
             state.root = pc;
-            oneTurns += delta;
+            oneTurns += delta + (spin ? 12 * (delta < 0 ? -1 : 1) : 0);
+            whizz(Boolean(spin));
             update(false);
             playNote(pc, 0.5);
         }
 
         function toggleNote(pc) {
+            stopScale();
             if (pc === state.root) {
                 // Taking out the 1 moves it to the nearest note left
                 if (state.notes.length <= 1) return;
@@ -1124,6 +1438,7 @@
                 if (delta > 6) delta -= 12;
                 state.root = target;
                 oneTurns += delta;
+                whizz(false);
                 update(false);
                 return;
             }
@@ -1136,16 +1451,270 @@
             update(true);
         }
 
-        function setScale(root, steps, keepTurns) {
+        // spin: the scale ring takes a full turn on its way to the new notes
+        function setScale(root, steps, keepTurns, spin) {
+            stopScale();
             let delta = mod12(root - state.root);
             if (delta > 6) delta -= 12;
             state.root = root;
             state.notes = steps.map(s => mod12(root + s));
             oneTurns += delta;
+            setTurns += delta + (spin ? 12 : 0);
+            if (spin) oneTurns += 12;
+            whizz(Boolean(spin));
             update(false);
         }
 
-        // ---- Dragging the rings ----
+        // ---- Key and scale pickers ----
+        // Tap the key or the scale for the whole list; the arrows step through.
+        const PICK_GROUPS = [
+            ['Modes of major', ['Major', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Natural Minor', 'Locrian']],
+            ['Modes of harmonic minor', ['Harmonic Minor', 'Locrian ♮6', 'Ionian ♯5', 'Ukrainian Dorian', 'Phrygian Dominant', 'Lydian ♯2', 'Altered Diminished']],
+            ['Modes of melodic minor', ['Melodic Minor', 'Dorian ♭2', 'Lydian Augmented', 'Lydian Dominant', 'Mixolydian ♭6', 'Locrian ♮2', 'Altered']]
+        ];
+
+        function scaleOptions() {
+            const used = new Set(PICK_GROUPS.flatMap(g => g[1]));
+            const rest = (title, test) => [title, SCALES.filter(sc => !used.has(sc.name) && test(sc)).map(sc => sc.name)];
+            const groups = [...PICK_GROUPS,
+                rest('More with seven notes', sc => sc.steps.length === 7),
+                rest('Five notes', sc => sc.steps.length === 5),
+                rest('Six notes', sc => sc.steps.length === 6),
+                rest('Eight or more', sc => sc.steps.length >= 8)];
+            return groups.map(([title, names]) => `<optgroup label="${title}">` + names.map(name => `<option value="${SCALES.findIndex(sc => sc.name === name)}">${name}</option>`).join('') + '</optgroup>').join('');
+        }
+
+        function buildPickers() {
+            const keys = KEY_NAMES.map((name, pc) => `<option value="${pc}">${name}</option>`).join('');
+            const scales = '<option value="-1" disabled>unnamed</option>' + scaleOptions();
+            document.querySelectorAll('.pickers').forEach(box => box.innerHTML = `
+                <div class="picker">
+                    <button onclick="transpose(-1)" aria-label="Key down a half step">‹</button>
+                    <label class="pick"><span class="pick-label">key</span><span class="pick-value" data-show="key"></span><select data-pick="key" onchange="pickKey(Number(this.value))" aria-label="Key">${keys}</select></label>
+                    <button onclick="transpose(1)" aria-label="Key up a half step">›</button>
+                </div>
+                <div class="picker">
+                    <button onclick="stepScale(-1)" aria-label="Previous scale">‹</button>
+                    <label class="pick"><span class="pick-label">scale</span><span class="pick-value" data-show="scale"></span><select data-pick="scale" onchange="pickScale(Number(this.value))" aria-label="Scale">${scales}</select></label>
+                    <button onclick="stepScale(1)" aria-label="Next scale">›</button>
+                </div>`);
+        }
+
+        function renderPickers() {
+            const known = SCALE_BY_MASK.get(maskOf(stepsFromRoot()));
+            document.querySelectorAll('[data-show="key"]').forEach(e => e.textContent = rootName());
+            document.querySelectorAll('[data-show="scale"]').forEach(e => e.textContent = known ? known.name : 'unnamed');
+            document.querySelectorAll('[data-pick="key"]').forEach(e => e.value = state.root);
+            document.querySelectorAll('[data-pick="scale"]').forEach(e => e.value = known ? SCALES.indexOf(known) : -1);
+        }
+
+        function pickKey(pc) {
+            let k = mod12(pc - state.root);
+            if (k > 6) k -= 12;
+            if (k) transpose(k, true);
+        }
+
+        // The key stays; the notes change to the chosen scale's, and the scale ring whizzes round
+        function pickScale(i) {
+            const scale = SCALES[i];
+            if (!scale) return;
+            if (maskOf(stepsFromRoot()) !== maskOf(scale.steps)) setScale(state.root, scale.steps, true, true);
+            playScale();
+        }
+
+        // The arrows go through the same list, in its order, the key staying put
+        function stepScale(dir) {
+            const order = [...scaleOptions().matchAll(/value="(\d+)"/g)].map(m => Number(m[1]));
+            const known = SCALE_BY_MASK.get(maskOf(stepsFromRoot()));
+            const at = known ? order.indexOf(SCALES.indexOf(known)) : -1;
+            const next = order[(at + dir + order.length) % order.length];
+            setScale(state.root, SCALES[next].steps, true, false);
+            playScale();
+        }
+
+        // ---- The view ----
+        const HINTS = {
+            wheel: '<b>Outside:</b> all twelve notes. <b>Middle:</b> the ones in your scale, lit. Tap one to add it or take it out; drag the ring to carry the whole scale to a new key. <b>Inside:</b> the scale\'s degrees, counted from the <b class="num">1</b>. Drag it to move the 1 and keep every note where it is: that\'s a new mode.',
+            drums: 'The same three wheels, seen from the side, with the <b class="num">1</b> in the window. <b>Left:</b> all twelve notes. <b>Middle:</b> your scale: tap a note to add it or take it out, roll the drum to carry the scale to a new key. <b>Right:</b> the degrees: roll it to move the 1 and keep every note where it is, a new mode.'
+        };
+
+        function setView(view) {
+            state.view = view;
+            save();
+            document.getElementById('wheelWrap').hidden = view !== 'wheel';
+            document.getElementById('drums').hidden = view !== 'drums';
+            document.querySelectorAll('#viewToggle button').forEach((b, i) => b.classList.toggle('on', ['wheel', 'drums'][i] === view));
+            document.getElementById('wheelHint').innerHTML = HINTS[view];
+            if (view === 'drums') {
+                anim.set = setTurns;
+                anim.one = anim.cam = oneTurns;
+                renderDrums();
+                spinDrums();
+            }
+        }
+
+        // ---- Drums ----
+        // Each drum is a twelve-sided wheel turned on its side. Every face is drawn where it
+        // would be if the drum were seen a little from far off: full size in the window, squashed
+        // and shaded as it turns away, all twelve in view, so a face slipping off the top comes
+        // round again at the bottom. They roll toward where they're going, so a jump whizzes.
+        const DRUM_H = 170;
+        const anim = { set: 0, one: 0, cam: 0, drag: null };
+        let drumFrame = null;
+
+        function buildDrums() {
+            const box = document.getElementById('drums');
+            box.innerHTML = ['notes', 'set', 'deg'].map(col => `
+                <div class="drum-col">
+                    <div class="drum ${col}" data-col="${col}">
+                        ${Array.from({ length: 12 }, (_, i) => `<div class="drum-item" data-col="${col}" data-i="${i}"></div>`).join('')}
+                    </div>
+                    <div class="drum-name">${{ notes: 'notes', set: 'scale', deg: 'degrees' }[col]}</div>
+                </div>`).join('') + '<div class="window"></div>';
+            box.addEventListener('pointerdown', drumDown);
+            box.addEventListener('pointermove', drumMove);
+            box.addEventListener('pointerup', drumUp);
+            box.addEventListener('pointercancel', () => {
+                anim.drag = null;
+                spinDrums();
+            });
+        }
+
+        // What each face shows. Faces of the scale drum are numbered from where the drum began
+        // (pc = face + setTurns), the degree drum from the 1 (step = face).
+        function renderDrums() {
+            const box = document.getElementById('drums');
+            if (box.hidden || !box.children.length) return;
+            const steps = stepsFromRoot();
+            const labels = degreeLabels(steps);
+            const spelled = spell(state.root, steps);
+            const nameOf = {};
+            steps.forEach((s, i) => nameOf[mod12(state.root + s)] = spelled[i]);
+            const flats = spelled.some(n => n.includes('♭'));
+            const lit = new Set(state.notes);
+            box.querySelectorAll('.drum-item').forEach(item => {
+                const i = Number(item.dataset.i);
+                if (item.dataset.col === 'notes') {
+                    item.dataset.pc = i;
+                    item.innerHTML = `<span class="note${nameOf[i] ? '' : ' out'}">${nameOf[i] || (flats ? FLAT_NAMES : SHARP_NAMES)[i]}</span>`;
+                } else if (item.dataset.col === 'set') {
+                    const pc = mod12(i + setTurns);
+                    item.dataset.pc = pc;
+                    item.innerHTML = `<span class="dot${lit.has(pc) ? (pc === state.root ? ' root' : '') : ' off'}"></span>`;
+                } else {
+                    const pc = mod12(state.root + i);
+                    item.dataset.pc = pc;
+                    const k = steps.indexOf(i);
+                    item.innerHTML = k < 0 ? '<span class="deg none"></span>' : `<span class="deg${i === 0 ? ' one' : ''}">${labels[k]}</span>`;
+                }
+            });
+            spinDrums();
+        }
+
+        function placeDrums() {
+            const box = document.getElementById('drums');
+            const off = anim.drag ? anim.drag.offset : 0;
+            const keyDrag = anim.drag && anim.drag.col !== 'deg';
+            box.querySelectorAll('.drum-item').forEach(item => {
+                const i = Number(item.dataset.i);
+                const col = item.dataset.col;
+                let v = col === 'notes' ? i : col === 'set' ? i + anim.set + (keyDrag ? off : 0) : i + anim.one + (anim.drag ? off : 0);
+                let turn = ((v - anim.cam) % 12 + 18) % 12 - 6;    // faces from the window, -6 to 6
+                const a = turn * Math.PI / 12;                      // half the drum's angle
+                const y = -DRUM_H * Math.sin(a);
+                const squash = Math.max(0.02, Math.cos(a));
+                item.style.transform = `translateY(${y.toFixed(1)}px) scaleY(${squash.toFixed(3)})`;
+                item.style.opacity = Math.pow(squash, 1.3).toFixed(3);
+                item.style.zIndex = Math.round(squash * 10);
+            });
+        }
+
+        function spinDrums() {
+            if (drumFrame || document.getElementById('drums').hidden) return;
+            const step = () => {
+                const ease = (key, target) => {
+                    const d = target - anim[key];
+                    anim[key] = Math.abs(d) < 0.002 ? target : anim[key] + d * 0.14;
+                    return Math.abs(d) >= 0.002;
+                };
+                // While a drum is in your hand, the window waits
+                const moving = [ease('set', setTurns), ease('one', oneTurns), anim.drag ? false : ease('cam', oneTurns)].some(Boolean);
+                placeDrums();
+                drumFrame = moving || anim.drag ? requestAnimationFrame(step) : null;
+            };
+            drumFrame = requestAnimationFrame(step);
+        }
+
+        const ROW = DRUM_H * Math.sin(Math.PI / 12);
+
+        function drumDown(event) {
+            const item = event.target.closest('.drum-item');
+            const drum = event.target.closest('.drum');
+            if (!drum) return;
+            anim.drag = { col: drum.dataset.col, y: event.clientY, offset: 0, moved: 0, item };
+            event.currentTarget.setPointerCapture(event.pointerId);
+            spinDrums();
+        }
+
+        function drumMove(event) {
+            if (!anim.drag) return;
+            const dy = event.clientY - anim.drag.y;
+            anim.drag.moved = Math.max(anim.drag.moved, Math.abs(dy));
+            if (anim.drag.moved < 6) return;
+            anim.drag.offset = -dy / ROW;
+        }
+
+        function drumUp() {
+            const drag = anim.drag;
+            if (!drag) return;
+            anim.drag = null;
+            if (drag.moved < 6) {
+                if (!drag.item) return spinDrums();
+                const pc = Number(drag.item.dataset.pc);
+                if (drag.col === 'notes') playNote(pc);
+                else if (drag.col === 'set') toggleNote(pc);
+                else if (state.notes.includes(pc) && pc !== state.root) moveOneTo(pc);
+                else playNote(pc);
+                return spinDrums();
+            }
+            const turns = Math.round(drag.offset);
+            if (drag.col !== 'deg') {
+                // Keep the drums where your hand left them, then let them settle
+                anim.set += drag.offset;
+                anim.one += drag.offset;
+                if (turns) transpose(turns);
+            } else {
+                anim.one += drag.offset;
+                const target = mod12(state.root + turns);
+                const steps = state.notes.map(n => mod12(n - target));
+                const nearest = steps.reduce((a, b) => Math.min(a, 12 - a) <= Math.min(b, 12 - b) ? a : b);
+                const landing = mod12(target + (nearest > 6 ? nearest - 12 : nearest));
+                if (landing !== state.root) moveOneTo(landing, turns < 0 ? -1 : 1);
+            }
+            spinDrums();
+        }
+
+        // ---- A note sounding: a pulse where it is ----
+        function pulse(pc, seconds = 0.6) {
+            const svg = document.getElementById('wheel');
+            if (!document.getElementById('wheelWrap').hidden) {
+                const [x, y] = polar(R_SET, pc);
+                const ring = el('circle', { cx: x, cy: y, r: 17, class: 'ring-pulse' }, svg);
+                setTimeout(() => ring.remove(), 800);
+                const [dx, dy] = polar(R_DEG, pc);
+                const ring2 = el('circle', { cx: dx, cy: dy, r: 16, class: 'ring-pulse' }, svg);
+                setTimeout(() => ring2.remove(), 800);
+            }
+            document.querySelectorAll(`#drums .drum-item[data-pc="${pc}"]`).forEach(item => {
+                if (item.dataset.col === 'notes') return;
+                item.classList.remove('sounding');
+                void item.offsetWidth;
+                item.classList.add('sounding');
+                setTimeout(() => item.classList.remove('sounding'), seconds * 1000);
+            });
+        }
+
+                // ---- Dragging the rings ----
         function angleAt(event) {
             const box = document.getElementById('wheel').getBoundingClientRect();
             const x = (event.clientX - box.left) / box.width * 400 - C;
@@ -1274,51 +1843,6 @@
             document.getElementById('nameBox').innerHTML = html;
         }
 
-        // ---- Two roads to minor ----
-        let roadBusy = false;
-        const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-        async function roadOne() {
-            if (roadBusy) return;
-            roadBusy = true;
-            const root = state.root;
-            setScale(root, MAJOR, true);
-            await wait(700);
-            for (const [from, to] of [[4, 3], [9, 8], [11, 10]]) {
-                state.notes = state.notes.filter(n => n !== mod12(root + from)).concat(mod12(root + to));
-                update(true);
-                playNote(mod12(root + to), 0.6);
-                await wait(800);
-            }
-            document.getElementById('wheel').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            playScale();
-            roadBusy = false;
-        }
-
-        async function roadTwo() {
-            if (roadBusy) return;
-            roadBusy = true;
-            const root = state.root;
-            setScale(root, MAJOR, true);
-            await wait(700);
-            // Down through the 7 to the 6
-            moveOneTo(mod12(root + 11), -1);
-            await wait(700);
-            moveOneTo(mod12(root + 9), -1);
-            await wait(700);
-            document.getElementById('wheel').scrollIntoView({ behavior: 'smooth', block: 'center' });
-            playScale();
-            roadBusy = false;
-        }
-
-        function renderRoads() {
-            const major = spell(state.root, MAJOR)[0];
-            const parallel = spell(state.root, MINOR)[0];
-            const rel = spell(mod12(state.root + 9), MINOR)[0];
-            document.getElementById('parallelText').textContent = `${major} major becomes ${parallel} minor`;
-            document.getElementById('relativeText').textContent = `${major} major becomes ${rel} minor`;
-        }
-
         // ---- Modes side by side ----
         // Brightest to darkest: each lowers one note of the one above
         const LADDER = [
@@ -1330,12 +1854,6 @@
             { name: 'Phrygian', steps: [0, 1, 3, 5, 7, 8, 10], feel: 'dark, Spanish' },
             { name: 'Locrian', steps: [0, 1, 3, 5, 6, 8, 10], feel: 'unsettled, no fifth' }
         ];
-
-        function setCompare(c) {
-            state.compare = c;
-            save();
-            renderModes();
-        }
 
         function diffAgainst(steps, ref) {
             return steps.map((s, i) => s - ref[i]);
@@ -1356,26 +1874,16 @@
         }
 
         function renderModes() {
-            document.querySelectorAll('#compareToggle button').forEach((b, i) => b.classList.toggle('on', ['closest', 'major', 'minor'][i] === state.compare));
             const current = maskOf(stepsFromRoot());
             const key = rootName();
             let html = '<tr><th></th>' + [1, 2, 3, 4, 5, 6, 7].map(n => `<th>${n}</th>`).join('') + '</tr>';
             LADDER.forEach((mode, row) => {
-                let ref;
-                if (state.compare === 'major') ref = MAJOR;
-                else if (state.compare === 'minor') ref = MINOR;
-                else {
-                    const a = diffAgainst(mode.steps, MAJOR).filter(Boolean).length;
-                    const b = diffAgainst(mode.steps, MINOR).filter(Boolean).length;
-                    ref = a <= b ? MAJOR : MINOR;
-                }
+                // Marked: the notes the line under it names, against major or minor, whichever is closer
+                const a = diffAgainst(mode.steps, MAJOR).filter(Boolean).length;
+                const b = diffAgainst(mode.steps, MINOR).filter(Boolean).length;
+                const ref = a <= b ? MAJOR : MINOR;
                 const labels = degreeLabels(mode.steps);
-                const above = row > 0 ? LADDER[row - 1].steps : null;
-                const cells = mode.steps.map((s, i) => {
-                    const d = s - ref[i];
-                    const stepped = above && above[i] !== s;
-                    return `<td><span class="cell${d ? ' diff' : ''}${d > 0 ? ' up' : ''}${stepped ? ' step' : ''}">${labels[i]}</span></td>`;
-                }).join('');
+                const cells = mode.steps.map((s, i) => `<td><span class="cell${s !== ref[i] ? ' diff' : ''}">${labels[i]}</span></td>`).join('');
                 const isCurrent = maskOf(mode.steps) === current;
                 html += `<tr class="${isCurrent ? 'current' : ''}" onclick="pickMode(${row})"><td class="mode-name"><b>${mode.name}</b></td>${cells}</tr>`;
                 html += `<tr class="${isCurrent ? 'current' : ''}" onclick="pickMode(${row})"><td class="mode-line" colspan="8">${describe(mode)} · ${mode.feel}</td></tr>`;
@@ -1419,6 +1927,7 @@
             document.querySelectorAll('#chordSize button').forEach((b, i) => b.classList.toggle('on', [3, 4][i] === state.chordSize));
             const steps = stepsFromRoot();
             const box = document.getElementById('chords');
+            renderLine('chordLine', null);
             if (steps.length < 5) {
                 box.innerHTML = '<p class="hint">Too few notes to stack in thirds. Add a few on the wheel.</p>';
                 chordList = [];
@@ -1455,6 +1964,55 @@
                 </button>`).join('');
         }
 
+        // ---- The number line ----
+        // C to B, left to right. Each note of the scale is a circle holding its degree, named by
+        // its letter, so moving around the circle of fifths you see the one note that changes
+        // slide over a half step while the rest stay put. lit: notes to fill in (a chord).
+        function renderLine(id, lit) {
+            const box = document.getElementById(id);
+            const steps = stepsFromRoot();
+            const labels = degreeLabels(steps);
+            const spelled = spell(state.root, steps);
+            const flats = spelled.some(n => n.includes('♭'));
+            const at = pc => (pc / 11 * 100).toFixed(2) + '%';
+            if (!box.dataset.built) {
+                box.dataset.built = '1';
+                box.innerHTML = Array.from({ length: 12 }, (_, pc) => `<span class="tick" style="left:${at(pc)}"></span><span class="tick-name" data-pc="${pc}" style="left:${at(pc)}"></span>`).join('');
+            }
+            const nameOf = {};
+            steps.forEach((s, i) => nameOf[mod12(state.root + s)] = spelled[i]);
+            box.querySelectorAll('.tick-name').forEach(t => {
+                const pc = Number(t.dataset.pc);
+                t.textContent = nameOf[pc] || (flats ? FLAT_NAMES : SHARP_NAMES)[pc];
+                t.classList.toggle('in', Boolean(nameOf[pc]));
+            });
+            // One circle per letter with seven notes (so F becoming F♯ is the F circle moving), else per degree
+            const keyOf = i => steps.length === 7 ? spelled[i][0] : 'd' + i;
+            const keep = new Set();
+            steps.forEach((s, i) => {
+                const pc = mod12(state.root + s);
+                const key = keyOf(i);
+                keep.add(key);
+                let dot = box.querySelector(`.line-dot[data-key="${key}"]`);
+                const fresh = !dot;
+                if (fresh) {
+                    dot = document.createElement('span');
+                    dot.className = 'line-dot';
+                    dot.dataset.key = key;
+                    dot.style.left = at(pc);
+                    box.appendChild(dot);
+                }
+                const moved = !fresh && dot.dataset.pc !== undefined && Number(dot.dataset.pc) !== pc;
+                dot.dataset.pc = pc;
+                dot.style.left = at(pc);
+                dot.textContent = labels[i];
+                dot.classList.toggle('lit', Boolean(lit && lit.includes(pc)));
+                dot.classList.toggle('moved', moved);
+                if (moved) setTimeout(() => dot.classList.remove('moved'), 1400);
+            });
+            box.querySelectorAll('.line-dot').forEach(dot => { if (!keep.has(dot.dataset.key)) dot.remove(); });
+        }
+
         // ---- Circle of fifths ----
         // Relative minors, in circle order (under C, G, D, ...)
         const MINOR_NAMES = ['a', 'e', 'b', 'f♯', 'c♯', 'g♯', 'e♭', 'b♭', 'f', 'c', 'g', 'd'];
@@ -1475,7 +2033,6 @@
         }
 
         function renderFifths() {
-            renderRoads();
             const svg = document.getElementById('fifths');
             svg.innerHTML = '';
             const c = 170;
@@ -1515,6 +2072,7 @@
             }
             const mid = el('text', { x: c, y: c, class: 'key-name', 'font-size': 13, fill: '#8b7759' }, svg);
             mid.textContent = 'fifths →';
+            renderLine('fifthsLine', null);
             const text = document.getElementById('fifthsText');
             if (home === null) {
                 text.textContent = 'The wheel isn\'t holding a major scale\'s notes right now (or any of its modes), so there\'s no one key to light up.';
@@ -1565,7 +2123,7 @@
         }
 
         // A soft, plucked-and-held tone: a triangle with a sine an octave down, darkening as it fades
-        function tone(freq, at, length, level = 0.25) {
+        function tone(freq, at, length, level = 0.25, into) {
             const ctx = ensureAudio();
             const g = ctx.createGain();
             const lp = ctx.createBiquadFilter();
@@ -1576,7 +2134,7 @@
             g.gain.linearRampToValueAtTime(level, at + 0.015);
             g.gain.exponentialRampToValueAtTime(level * 0.35, at + 0.25);
             g.gain.exponentialRampToValueAtTime(0.0008, at + length);
-            lp.connect(g).connect(out);
+            lp.connect(g).connect(into || out);
             [['triangle', 1, 1], ['sine', 0.5, 0.5], ['sine', 2, 0.12]].forEach(([type, mult, amt]) => {
                 const o = ctx.createOscillator();
                 o.type = type;
@@ -1593,17 +2151,56 @@
         function playNote(pc, length = 1.2) {
             const ctx = ensureAudio();
             tone(freqOf(state.root + mod12(pc - state.root)), ctx.currentTime + 0.01, length);
+            pulse(pc);
+        }
+
+        // The scale, up to the octave; each note pulses on the wheel as it sounds. Pause stops it.
+        const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6a.8.8 0 0 0 1.2.7l10.6-6.8a.8.8 0 0 0 0-1.4L9.2 4.5A.8.8 0 0 0 8 5.2z"/></svg>';
+        const PAUSE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1"/><rect x="13.8" y="5" width="4.2" height="14" rx="1"/></svg>';
+        let run = null;
+
+        function renderPlay() {
+            const btn = document.getElementById('playBtn');
+            btn.innerHTML = run ? PAUSE_ICON : PLAY_ICON;
+            btn.setAttribute('aria-label', run ? 'Pause' : 'Play the scale');
+        }
+
+        function togglePlay() {
+            if (run) stopScale();
+            else playScale();
         }
 
         function playScale() {
+            stopScale();
             const ctx = ensureAudio();
             const steps = stepsFromRoot();
+            const bus = ctx.createGain();
+            bus.connect(out);
             const t0 = ctx.currentTime + 0.05;
             const gap = 0.34;
-            [...steps, 12].forEach((s, i) => tone(freqOf(state.root + s), t0 + i * gap, i === steps.length ? 1.6 : 0.9));
+            const notes = [...steps, 12];
+            run = { bus, timers: [] };
+            notes.forEach((s, i) => {
+                tone(freqOf(state.root + s), t0 + i * gap, i === steps.length ? 1.6 : 0.9, 0.25, bus);
+                run.timers.push(setTimeout(() => pulse(mod12(state.root + s)), (0.05 + i * gap) * 1000));
+            });
+            run.timers.push(setTimeout(() => { run = null; renderPlay(); }, (0.05 + notes.length * gap + 0.6) * 1000));
+            renderPlay();
         }
 
-        function playChord(i, button) {
+        function stopScale() {
+            if (!run) return;
+            run.timers.forEach(clearTimeout);
+            const t = audio.currentTime;
+            run.bus.gain.setValueAtTime(run.bus.gain.value, t);
+            run.bus.gain.linearRampToValueAtTime(0, t + 0.08);
+            const bus = run.bus;
+            setTimeout(() => bus.disconnect(), 300);
+            run = null;
+            renderPlay();
+        }
+
+                function playChord(i, button) {
             const ctx = ensureAudio();
             const chord = chordList[i];
             if (!chord) return;
@@ -1611,6 +2208,8 @@
             chord.pcs.forEach((p, k) => tone(freqOf(p), t0 + k * 0.045, 2.2, 0.18));
             button.classList.add('sounding');
             setTimeout(() => button.classList.remove('sounding'), 700);
+            renderLine('chordLine', chord.pcs.map(mod12));
+            chord.pcs.forEach(p => pulse(mod12(p), 0.9));
         }
 
         // The drone: the 1 and its fifth, low and steady, for as long as it's on
@@ -1689,9 +2288,17 @@
             const pick = options[Math.floor(Math.random() * options.length)];
             const low = 52 + Math.floor(Math.random() * 12);
             question = { interval: pick, low, answered: false };
-            replay();
+            showResult('');
             renderEar();
-            document.getElementById('earResult').textContent = '';
+            replay();
+        }
+
+        // Replaced whole, so no line of an old answer is left behind
+        function showResult(html) {
+            const old = document.getElementById('earResult');
+            const fresh = old.cloneNode(false);
+            fresh.innerHTML = html;
+            old.replaceWith(fresh);
         }
 
         function replay() {
@@ -1710,12 +2317,11 @@
             if (right) {
                 question.answered = true;
                 streak++;
-                document.getElementById('earResult').innerHTML = `Yes, a <b>${question.interval.name}</b>. Think: ${question.interval.tune}.`;
-                setTimeout(newQuestion, 1800);
+                showResult(`Yes, a <b>${question.interval.name}</b>. Think: ${question.interval.tune}.`);
             } else {
                 streak = 0;
                 const guessed = INTERVALS.find(i => i.semis === semis);
-                document.getElementById('earResult').innerHTML = `Not a ${guessed.name} (that's ${guessed.tune}). Listen again and try another.`;
+                showResult(`Not a ${guessed.name} (that's ${guessed.tune}). Listen again and try another.`);
                 replay();
             }
             document.getElementById('streak').textContent = streak > 1 ? `${streak} in a row` : '';
@@ -1724,13 +2330,17 @@
         function renderEar() {
             document.querySelectorAll('#earLevel button').forEach((b, i) => b.classList.toggle('on', i === state.earLevel));
             document.getElementById('earAgain').hidden = !question;
-            document.getElementById('earPlay').textContent = question ? '▶ New pair' : '▶ Play a pair';
+            document.getElementById('earPlay').textContent = question ? 'new pair' : 'play a pair';
             document.getElementById('choices').innerHTML = question ? pool().map(i => `<button class="choice" onclick="answer(${i.semis}, this)">${i.name}</button>`).join('') : '';
         }
 
         // ---- Start ----
         buildWheel();
+        buildDrums();
+        buildPickers();
+        setView(state.view === 'drums' ? 'drums' : 'wheel');
         update(true);
+        renderPlay();
         renderEar();
 
         if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
