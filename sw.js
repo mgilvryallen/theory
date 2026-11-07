@@ -1,6 +1,6 @@
 // Offline support: the page from the network when it can, everything else from cache.
 // Bump CACHE when files are added or removed.
-const CACHE = 'theory-v2';
+const CACHE = 'theory-v3';
 const FILES = [
     './',
     'index.html',
