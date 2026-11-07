@@ -1278,6 +1278,8 @@
                     let rootOff = mod12(root - LETTER_PC[letter]);
                     if (rootOff > 6) rootOff -= 12;
                     if (Math.abs(rootOff) > 1) continue;
+                    // A natural 1 stays natural: C is never B♯, E never F♭
+                    if (!/[♯♭]/.test(KEY_NAMES[root]) && rootOff !== 0) continue;
                     // On a tie (D♯ minor or E♭ minor), the name the key usually goes by
                     let cost = LETTERS[letter] + ACC[rootOff] === KEY_NAMES[root] ? 0 : 0.5;
                     const names = steps.map((s, i) => {
@@ -1292,8 +1294,17 @@
                 }
                 if (best) return best.names;
             }
-            const flats = [1, 3, 5, 8, 10].includes(root) || steps.includes(3) && !steps.includes(4) && ![4, 9, 11, 6].includes(root);
-            return steps.map(s => (flats ? FLAT_NAMES : SHARP_NAMES)[mod12(root + s)]);
+            // Any other size: each note takes the letter its degree names (♭7 is a kind of 7,
+            // ♯4 a kind of 4), counted from the 1's letter
+            const rootName = KEY_NAMES[root];
+            const rootLetter = LETTERS.indexOf(rootName[0]);
+            return degreeLabels(steps).map((label, i) => {
+                const degree = parseInt(label.replace(/\D/g, '')) || 1;
+                const l = (rootLetter + degree - 1) % 7;
+                let off = mod12(root + steps[i] - LETTER_PC[l]);
+                if (off > 6) off -= 12;
+                return Math.abs(off) <= 2 ? LETTERS[l] + ACC[off] : (FLAT_NAMES)[mod12(root + steps[i])];
+            });
         }
 
         function rootName() {
@@ -1996,6 +2007,7 @@
         };
 
         let chordList = [];
+        const INTERVAL_TAG = { 1: '♭2', 2: '2', 3: '♭3', 4: '3', 5: '4', 6: '♭5', 7: '5', 8: '♯5', 9: '6' };
 
         function renderChords() {
             document.querySelectorAll('#chordSize button').forEach((b, i) => b.classList.toggle('on', [3, 4][i] === state.chordSize));
@@ -2010,26 +2022,83 @@
             const labels = degreeLabels(steps);
             const spelled = spell(state.root, steps);
             const n = steps.length;
+            const inScale = new Set(steps);
+            const missing = [];
             chordList = steps.map((s, i) => {
-                const picks = [0, 2, 4, 6].slice(0, state.chordSize).map(k => i + k);
-                const pcs = picks.map(k => steps[k % n] + 12 * Math.floor(k / n));
-                const rel = pcs.map(p => p - pcs[0]);
-                const quality = QUALITIES.find(q => q.shape[0] === rel[1] && q.shape[1] === rel[2]);
                 const acc = labels[i].replace(/\d/g, '');
                 const base = n === 7 ? ROMAN[i] : ROMAN[Math.min(6, parseInt(labels[i].replace(/\D/g, '')) - 1)];
-                let numeral = quality ? quality.numeral(base) : base.toLowerCase() + '?';
-                let name = spelled[i] + (quality ? quality.suffix : '');
-                if (state.chordSize === 4) {
+                let rel;
+                if (n === 7) {
+                    // Seven notes: every other note is a third, which is what a scale's chords are
+                    const picks = [0, 2, 4, 6].slice(0, state.chordSize).map(k => i + k);
+                    rel = picks.map(k => steps[k % n] + 12 * Math.floor(k / n) - s);
+                } else {
+                    // Any other size: every other note can skip right past the third (C E A in a
+                    // pentatonic), so look for a chord whose notes are all in the scale instead
+                    const has = x => inScale.has(mod12(s + x));
+                    const quality = [0, 1, 2, 3, 5, 4].map(k => QUALITIES[k]).find(q => has(q.shape[0]) && has(q.shape[1]));
+                    if (!quality) {
+                        missing.push(spelled[i]);
+                        return null;
+                    }
+                    rel = [0, ...quality.shape];
+                    if (state.chordSize === 4) {
+                        const prefer = quality.shape[0] === 4 && quality.shape[1] === 7 ? [11, 10] : quality.shape[1] === 6 ? [10, 9] : quality.shape[1] === 8 ? [11, 10] : [10, 11];
+                        const seventh = prefer.find(has);
+                        if (seventh) rel.push(seventh);
+                    }
+                }
+                const quality = QUALITIES.find(q => q.shape[0] === rel[1] && q.shape[1] === rel[2]);
+                // A stack with no usual name is named by its notes' distances from the root
+                const odd = `(${rel.slice(1, 3).map(x => INTERVAL_TAG[x] || x).join(' ')})`;
+                let numeral = quality ? quality.numeral(base) : base + odd;
+                let name = spelled[i] + (quality ? quality.suffix : odd);
+                if (rel.length === 4) {
                     const seventh = SEVENTHS[rel.slice(1).join(',')];
+                    const triad = rel.slice(1, 3).join(',');
+                    const tag = { 9: '6', 10: '7', 11: 'maj7' }[rel[3]] || '';
+                    const special = { '4,6': '♭5', '2,7': 'sus2', '5,7': 'sus4' }[triad];
                     if (seventh) {
                         name = spelled[i] + seventh[0];
                         numeral = seventh[1](base);
+                    } else if (special && tag !== '6') {
+                        name = spelled[i] + tag + special;
+                        numeral = base + tag + special;
+                    } else if (quality) {
+                        name = `${spelled[i]}${quality.suffix}(${tag === '6' ? '𝄫7' : tag})`;
+                        numeral = `${quality.numeral(base)}(${tag === '6' ? '𝄫7' : tag})`;
                     } else {
-                        numeral += '7?';
+                        const inside = `${odd.slice(0, -1)} ${tag === '6' ? '𝄫7' : tag})`;
+                        name = spelled[i] + inside;
+                        numeral = base + inside;
                     }
                 }
-                return { numeral: acc + numeral, name, notes: picks.map(k => spelled[k % n]), pcs: pcs.map(p => state.root + p) };
-            });
+                // Seven notes: the scale's own spelling already stacks letter by letter. Otherwise
+                // spell the chord as a chord (E G♯ B, not E A♭ B), up from its root's letter.
+                const stackFrom = rootSpelling => rel.map((x, k) => {
+                    if (!k) return rootSpelling;
+                    const letterStep = [null, { 2: 1, 3: 2, 4: 2, 5: 3 }, { 5: 3, 6: 4, 7: 4, 8: 4, 9: 5 }, { 9: 6, 10: 6, 11: 6 }][k][x] ?? Math.round(x / 1.75);
+                    const l = (LETTERS.indexOf(rootSpelling[0]) + letterStep) % 7;
+                    let off = mod12(state.root + s + x - LETTER_PC[l]);
+                    if (off > 6) off -= 12;
+                    return Math.abs(off) <= 2 ? LETTERS[l] + ACC[off] : spelled[steps.indexOf(mod12(s + x))];
+                });
+                let notes = n === 7 ? rel.map(x => spelled[steps.indexOf(mod12(s + x))]) : stackFrom(spelled[i]);
+                // Double sharps or flats in it? The root's other name may spell it plainly (E♭+, not D♯+)
+                if (n !== 7 && notes.some(note => /[𝄪𝄫]/.test(note))) {
+                    const pc = mod12(state.root + s);
+                    const other = [SHARP_NAMES[pc], FLAT_NAMES[pc]].find(nm => nm !== spelled[i]);
+                    const respelled = other && stackFrom(other);
+                    if (respelled && !respelled.some(note => /[𝄪𝄫]/.test(note))) {
+                        notes = respelled;
+                        name = other + name.slice(spelled[i].length);
+                    }
+                }
+                return { numeral: acc + numeral, name, notes, pcs: rel.map(x => state.root + s + x) };
+            }).filter(Boolean);
+            document.getElementById('chordsHint').innerHTML = n === 7
+                ? 'Stack every other note of the scale, starting on each degree, and you get its chords. Capital numerals are major, small ones minor, ° diminished, + augmented. Tap to hear.'
+                : `With ${n} notes, every other note isn't always a third, so each degree gets the chord its own notes can make: major, minor, diminished or augmented if they're there, else sus4 or sus2.${missing.length ? ` Nothing to build on ${missing.join(', ')}.` : ''} Tap to hear.`;
             box.innerHTML = chordList.map((c, i) => `
                 <button class="chord" onclick="playChord(${i}, this)">
                     <span class="numeral">${c.numeral}</span>
