@@ -2158,8 +2158,9 @@
                 if (loop.at >= pan.length) loop.at = pan.length - 1;
                 const t = loop.start + loop.pos * beat;
                 let length;
-                if (loop.pos % 16 === 0) {
-                    // Every other bar opens on the 1: mostly the low one, the ding, sometimes an octave up
+                if (loop.pos % 32 === 0) {
+                    // Every fourth bar opens on the 1, marking the downbeat: mostly the low one, the
+                    // ding, sometimes an octave up. (The melody finds the 1 on its own too.)
                     const r = Math.random();
                     const octave = r < 0.7 ? -12 : r < 0.9 ? 0 : 12;
                     panTone(freqOf(state.root + octave), t, octave < 0 ? 0.5 : 0.3, bus);
