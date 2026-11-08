@@ -1355,6 +1355,10 @@
         }
 
         // ---- Changing the scale ----
+        // The audio wakes on the first touch anywhere on the page, so it's ready by the time
+        // anything is played (browsers only allow it to start from a touch or click)
+        document.addEventListener('pointerdown', () => ensureAudio(), { capture: true, once: true });
+
         // Whatever card you just touched stays put on screen while the cards above it change size
         let touched = null;
         ['pointerdown', 'change', 'keydown'].forEach(type => document.addEventListener(type, event => {
@@ -1548,25 +1552,32 @@
             }
         }
 
-        // A struck note on the handpan: its ring swells out each time the echo brings it back
-        // and draws in halfway between, fading as the echoes do. at: when it sounds (audio time).
+        // A struck note on the handpan: its ring bounces off the dot like a ball off the ground.
+        // Each echo launches it: it rises fast, slows and hangs at the top halfway between
+        // echoes, then falls faster and faster to land on the next one. Each bounce is lower
+        // and fainter, as the echoes are. at: when it sounds (audio time).
         const ECHO_REPEATS = 5;
         function echoRing(pc, at, level) {
             const svg = document.getElementById('wheel');
             const [x, y] = polar(R_SET, pc);
             const ring = el('circle', { cx: x, cy: y, r: 21, class: 'echo-ring' }, svg);
             const period = 0.27 * 3 * 1000;
+            const total = ECHO_REPEATS;
             const frames = [];
-            for (let k = 0; k <= ECHO_REPEATS; k++) {
-                const strength = level * Math.pow(0.42, k);
-                frames.push({ offset: k / (ECHO_REPEATS + 0.5), transform: 'scale(1.55)', opacity: Math.min(1, strength) });
-                frames.push({ offset: (k + 0.5) / (ECHO_REPEATS + 0.5), transform: 'scale(1.05)', opacity: Math.min(1, strength) * 0.45 });
+            const samples = 14;
+            for (let k = 0; k < total; k++) {
+                const height = 0.62 * Math.pow(0.6, k) * Math.min(1, level);
+                const glow = Math.min(1, level) * Math.pow(0.5, k);
+                for (let n = 0; n < samples; n++) {
+                    const u = n / samples;
+                    // Height of a thrown ball: up fast, slow at the top, back down fast
+                    const h = 4 * u * (1 - u);
+                    frames.push({ offset: (k + u) / total, transform: `scale(${(1.02 + height * h).toFixed(3)})`, opacity: +(glow * (0.55 + 0.45 * h)).toFixed(3) });
+                }
             }
-            frames.unshift({ offset: 0, transform: 'scale(0.9)', opacity: 0 });
-            frames[1].offset = 0.012;
-            frames.push({ offset: 1, transform: 'scale(1)', opacity: 0 });
+            frames.push({ offset: 1, transform: 'scale(1.02)', opacity: 0 });
             const delay = Math.max(0, (at - audio.currentTime) * 1000);
-            const anim = ring.animate(frames, { duration: period * (ECHO_REPEATS + 0.5), delay, easing: 'linear', fill: 'both' });
+            const anim = ring.animate(frames, { duration: period * total, delay, easing: 'linear', fill: 'both' });
             anim.onfinish = () => ring.remove();
         }
 
@@ -2049,7 +2060,10 @@
 
         function ensureAudio() {
             if (!audio) {
-                audio = new (window.AudioContext || window.webkitAudioContext)();
+                // 'playback': bigger, steadier audio buffers, since nothing here needs instant response
+                const Context = window.AudioContext || window.webkitAudioContext;
+                try { audio = new Context({ latencyHint: 'playback' }); } catch (e) { audio = new Context(); }
+                audio.bornAt = performance.now();
                 const comp = audio.createDynamicsCompressor();
                 comp.threshold.value = -14;
                 comp.connect(audio.destination);
@@ -2068,6 +2082,12 @@
                 const wet = audio.createGain();
                 wet.gain.value = 0.18;
                 out.connect(room).connect(wet).connect(comp);
+                // A moment of silence through it all, so the audio (and the room's reverb, which is
+                // heavy to load) is up and settled before the first real note
+                const hush = audio.createBufferSource();
+                hush.buffer = audio.createBuffer(1, Math.round(audio.sampleRate * 0.05), audio.sampleRate);
+                hush.connect(out);
+                hush.start();
             }
             if (audio.state === 'suspended') audio.resume();
             return audio;
@@ -2255,7 +2275,7 @@
             thin.connect(into).connect(tape).connect(dc).connect(wet).connect(out);
             tailThin.connect(into);
             // Bars of 4/4 in eighth notes, timed off the audio clock so the bars stay even
-            loop = { bus, timer: null, at: 2, pos: 0, start: audio.currentTime + 0.12, echoNodes: [echo, wear, thin, feedback, into, tape, dc, wet, tailSend, tail, tailWear, tailThin, tailFeedback] };
+            loop = { bus, timer: null, at: 2, pos: 0, start: audio.currentTime + (performance.now() - audio.bornAt < 800 ? 0.45 : 0.12), echoNodes: [echo, wear, thin, feedback, into, tape, dc, wet, tailSend, tail, tailWear, tailThin, tailFeedback] };
             const tick = () => {
                 if (!loop) return;
                 const steps = stepsFromRoot();
