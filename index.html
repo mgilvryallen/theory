@@ -12,9 +12,9 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="manifest" href="manifest.webmanifest">
     <!-- A PNG too: Safari's tabs don't show an SVG icon, and would show another app's instead -->
-    <link rel="icon" href="icons/icon-192.png?v=3" type="image/png" sizes="192x192">
-    <link rel="icon" href="icons/icon.svg?v=3" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="icons/icon-180.png?v=3">
+    <link rel="icon" href="icons/icon-192.png?v=4" type="image/png" sizes="192x192">
+    <link rel="icon" href="icons/icon.svg?v=4" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="icons/icon-180.png?v=4">
     <style>
         @font-face {
             font-family: 'Rug Pull';
@@ -912,7 +912,7 @@
 <body>
     <div class="container">
         <header>
-            <img src="icons/icon.svg?v=3" alt="">
+            <img src="icons/icon.svg?v=4" alt="">
             <h1>Theory</h1>
             <p class="tagline">Turn the wheel. Learn about it.</p>
         </header>
@@ -2147,7 +2147,8 @@
             wet.gain.value = 0.42;
             bus.connect(echo).connect(echoTone).connect(feedback).connect(echo);
             echoTone.connect(wet).connect(out);
-            loop = { bus, timer: null, at: 0, phrase: 0, echoNodes: [echo, feedback, echoTone, wet] };
+            // Bars of 4/4 in eighth notes, timed off the audio clock so the bars stay even
+            loop = { bus, timer: null, at: 2, pos: 0, start: audio.currentTime + 0.08, echoNodes: [echo, feedback, echoTone, wet] };
             const tick = () => {
                 if (!loop) return;
                 const steps = stepsFromRoot();
@@ -2155,40 +2156,42 @@
                 // The notes on the pan: the scale from the 1 up through most of two octaves
                 const pan = [...steps, ...steps.map(s => s + 12), 24].filter(s => s <= 19);
                 if (loop.at >= pan.length) loop.at = pan.length - 1;
-                const t = audio.currentTime + 0.03;
-                let length = 1;
-                if (loop.phrase === 0) {
-                    // A phrase opens on the ding, the low 1, and lets it ring
-                    panTone(freqOf(state.root) / 2, t, 0.5, bus);
+                const t = loop.start + loop.pos * beat;
+                let length;
+                if (loop.pos % 8 === 0) {
+                    // Every bar opens on the 1: mostly the low one, the ding, sometimes an octave up
+                    const r = Math.random();
+                    const octave = r < 0.7 ? -12 : r < 0.9 ? 0 : 12;
+                    panTone(freqOf(state.root + octave), t, octave < 0 ? 0.5 : 0.3, bus);
                     pulse(state.root);
-                    loop.at = Math.random() < 0.5 ? 0 : Math.min(pan.length - 1, 2 + Math.floor(Math.random() * 3));
-                    loop.phraseLength = 6 + Math.floor(Math.random() * 7);
-                    length = 2;
-                } else if (loop.phrase >= loop.phraseLength) {
-                    // Breathe between phrases
-                    loop.phrase = -1;
-                    length = 2 + Math.floor(Math.random() * 3);
+                    // The melody picks up again near the bottom or the middle of the pan
+                    if (Math.random() < 0.35) loop.at = Math.min(pan.length - 1, Math.floor(Math.random() * 5));
+                    length = pickWeighted([[1, 3], [2, 3]]);
+                } else if (Math.random() < 0.13) {
+                    // A breath
+                    length = pickWeighted([[1, 3], [2, 2]]);
                 } else {
                     // Walk: mostly a step, sometimes a skip or a leap, drawn toward the mode's own notes
                     const moves = [[-1, 3], [1, 3], [-2, 1.5], [2, 1.5], [3, 0.6], [-3, 0.6], [5, 0.25], [0, 0.4]];
-                    const options = moves.map(([m, w]) => {
+                    loop.at = pickWeighted(moves.map(([m, w]) => {
                         const to = loop.at + m;
                         if (to < 0 || to >= pan.length) return [to, 0];
-                        const isColor = colors.includes(mod12(pan[to]));
-                        return [to, w * (isColor ? 2.2 : 1)];
-                    });
-                    loop.at = pickWeighted(options);
+                        return [to, w * (colors.includes(mod12(pan[to])) ? 2.2 : 1)];
+                    }));
                     const s = pan[loop.at];
                     const soft = 0.22 + Math.random() * 0.14;
                     panTone(freqOf(state.root + s), t, soft, bus);
                     pulse(mod12(state.root + s));
                     // Now and then a second note with it, a third or so below
                     if (Math.random() < 0.14 && loop.at >= 2) panTone(freqOf(state.root + pan[loop.at - 2]), t + 0.012, soft * 0.7, bus);
-                    // Mostly eighths, some quarters, a few quick pairs
+                    // Mostly eighths, some quarters, a few quick sixteenths
                     length = pickWeighted([[1, 5], [2, 2.5], [0.5, 0.8], [3, 0.6]]);
                 }
-                loop.phrase++;
-                loop.timer = setTimeout(tick, length * beat * 1000);
+                // Nothing rings over a downbeat: the next bar's 1 always comes on time
+                const nextBar = (Math.floor(loop.pos / 8) + 1) * 8;
+                loop.pos = Math.min(loop.pos + length, nextBar);
+                const wait = (loop.start + loop.pos * beat - audio.currentTime - 0.06) * 1000;
+                loop.timer = setTimeout(tick, Math.max(0, wait));
             };
             tick();
             renderHub();
