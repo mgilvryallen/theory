@@ -11,6 +11,8 @@
     <meta name="apple-mobile-web-app-title" content="Theory">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <link rel="manifest" href="manifest.webmanifest">
+    <!-- A PNG too: Safari's tabs don't show an SVG icon, and would show another app's instead -->
+    <link rel="icon" href="icons/icon-192.png?v=3" type="image/png" sizes="192x192">
     <link rel="icon" href="icons/icon.svg?v=3" type="image/svg+xml">
     <link rel="apple-touch-icon" href="icons/icon-180.png?v=3">
     <style>
@@ -253,6 +255,26 @@
             text-anchor: middle;
             dominant-baseline: central;
             pointer-events: none;
+        }
+
+        .hub {
+            fill: transparent;
+            cursor: pointer;
+        }
+
+        .hub-icon {
+            fill: var(--green);
+            pointer-events: none;
+        }
+
+        .looping .hub {
+            fill: rgba(61, 90, 66, 0.07);
+        }
+
+        .btn:disabled {
+            opacity: 0.35;
+            cursor: default;
+            filter: none;
         }
 
         .note-name.out {
@@ -897,6 +919,8 @@
         }
 
         .chord {
+            min-width: 0;
+            overflow: hidden;
             border: 1px solid var(--light-tan);
             background: var(--parchment);
             padding: 8px 4px;
@@ -907,6 +931,11 @@
 
         .chord:hover {
             border-color: var(--tan);
+        }
+
+        .chord .numeral,
+        .chord .chord-name {
+            white-space: nowrap;
         }
 
         .chord .numeral {
@@ -1388,8 +1417,11 @@
                 el('text', { x, y, class: 'note-name', id: 'name' + pc }, names);
             }
             el('g', { id: 'setRing', class: 'spin' }, svg);
-            el('text', { x: C, y: C - 10, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 26px; fill: #a0522d' }, svg);
-            el('text', { x: C, y: C + 16, class: 'note-name', id: 'centerSub', style: 'font-size: 12px; fill: #6b5d4f' }, svg);
+            el('circle', { cx: C, cy: C, r: R_HUB - 1, id: 'hub', class: 'hub' }, svg);
+            el('text', { x: C, y: C - 20, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 26px; fill: #a0522d' }, svg);
+            el('text', { x: C, y: C + 4, class: 'note-name', id: 'centerSub', style: 'font-size: 12px; fill: #6b5d4f' }, svg);
+            // Play and pause, under the name: the scale round and round
+            el('path', { id: 'hubIcon', class: 'hub-icon', d: '' }, svg);
             renderWheel(true);
         }
 
@@ -1434,6 +1466,7 @@
             const known = SCALE_BY_MASK.get(maskOf(steps));
             document.getElementById('centerName').textContent = spelled[0];
             document.getElementById('centerSub').textContent = known ? known.name.toLowerCase() : `${steps.length} notes`;
+            renderHub();
         }
 
         // ---- Changing the scale ----
@@ -1622,8 +1655,8 @@
 
         // ---- The view ----
         const HINTS = {
-            wheel: '<b>Outside:</b> all twelve notes. <b>Inside:</b> your scale, each note numbered from the <b class="num">1</b>. Tap a spot to add a note or take it out. Drag the ring to carry the whole scale to a new key. Hold a note to make it the 1: same notes, new mode.',
-            drums: 'The same two wheels, seen from the side, the <b class="num">1</b> in the window. <b>Left:</b> all twelve notes. <b>Right:</b> your scale, numbered from the 1. Tap a spot to add a note or take it out, roll the drum to carry the scale to a new key, and hold a note to make it the 1.'
+            wheel: '<b>Outside ring:</b> the twelve notes in western music. <b>Inside ring:</b> scale degrees. Tap a dot to add a note to your scale or take one out. If you create a known mode, the mode box will tell you. Drag the whole ring to move to a new key. Tap the middle to play the scale over and over.',
+            drums: '<b>Left drum:</b> the twelve notes in western music. <b>Right drum:</b> scale degrees, with the <b class="num">1</b> in the window. Tap a dot to add a note to your scale or take one out. If you create a known mode, the mode box will tell you. Roll the drum to move to a new key.'
         };
 
         function setView(view) {
@@ -1663,7 +1696,6 @@
             box.addEventListener('pointermove', drumMove);
             box.addEventListener('pointerup', drumUp);
             box.addEventListener('pointercancel', () => {
-                if (anim.drag) clearTimeout(anim.drag.timer);
                 anim.drag = null;
                 spinDrums();
             });
@@ -1735,14 +1767,6 @@
             const drum = event.target.closest('.drum');
             if (!drum) return;
             anim.drag = { col: drum.dataset.col, y: event.clientY, offset: 0, moved: 0, item };
-            const pc = item ? Number(item.dataset.pc) : null;
-            if (drum.dataset.col === 'set' && item && state.notes.includes(pc)) {
-                anim.drag.timer = setTimeout(() => {
-                    if (!anim.drag || anim.drag.moved >= 6) return;
-                    anim.drag.held = true;
-                    if (pc !== state.root) moveOneTo(pc);
-                }, HOLD_MS);
-            }
             event.currentTarget.setPointerCapture(event.pointerId);
             spinDrums();
         }
@@ -1752,7 +1776,6 @@
             const dy = event.clientY - anim.drag.y;
             anim.drag.moved = Math.max(anim.drag.moved, Math.abs(dy));
             if (anim.drag.moved < 6) return;
-            clearTimeout(anim.drag.timer);
             anim.drag.offset = -dy / ROW;
         }
 
@@ -1760,8 +1783,6 @@
             const drag = anim.drag;
             if (!drag) return;
             anim.drag = null;
-            clearTimeout(drag.timer);
-            if (drag.held) return spinDrums();
             if (drag.moved < 6) {
                 if (drag.item) {
                     const pc = Number(drag.item.dataset.pc);
@@ -1803,27 +1824,17 @@
         }
 
         const slotAt = deg => mod12(Math.round(deg / 30));
-        const HOLD_MS = 450;
-
         const wrap = document.getElementById('wheelWrap');
         wrap.addEventListener('pointerdown', event => {
             const { deg, r } = angleAt(event);
             if (r > 197) return;
-            const ring = r > R_NAMES - 20 ? 'names' : 'set';
-            const pc = slotAt(deg);
-            drag = { ring, last: deg, moved: 0, pc, onNote: ring === 'set' && r > R_HUB && Math.abs(r - R_SET) < 30 };
-            // Hold a lit note to make it the 1
-            if (drag.onNote && state.notes.includes(pc)) {
-                drag.timer = setTimeout(() => {
-                    if (!drag || Math.abs(drag.moved) >= 6) return;
-                    drag.held = true;
-                    if (pc !== state.root) moveOneTo(pc);
-                }, HOLD_MS);
-            }
+            const ring = r > R_NAMES - 20 ? 'names' : r < R_HUB ? 'hub' : 'set';
+            drag = { ring, last: deg, moved: 0, pc: slotAt(deg), onNote: ring === 'set' && Math.abs(r - R_SET) < 30 };
             wrap.setPointerCapture(event.pointerId);
         });
+        // The whole inside turns, from the ring or the middle; a tap in the middle plays
         wrap.addEventListener('pointermove', event => {
-            if (!drag || drag.ring !== 'set') return;
+            if (!drag || drag.ring === 'names') return;
             const { deg } = angleAt(event);
             let d = deg - drag.last;
             if (d > 180) d -= 360;
@@ -1831,7 +1842,6 @@
             drag.last = deg;
             drag.moved += d;
             if (Math.abs(drag.moved) < 6) return;
-            clearTimeout(drag.timer);
             const g = document.getElementById('setRing');
             g.classList.remove('ease');
             const turn = setTurns * 30 + drag.moved;
@@ -1842,10 +1852,9 @@
             if (!drag) return;
             const d = drag;
             drag = null;
-            clearTimeout(d.timer);
-            if (d.held) return;
             if (Math.abs(d.moved) < 6) {
                 if (d.ring === 'names') playNote(d.pc);
+                else if (d.ring === 'hub') toggleLoop();
                 else if (d.onNote) toggleNote(d.pc);
                 return;
             }
@@ -1854,7 +1863,6 @@
             else renderWheel(false);
         });
         wrap.addEventListener('pointercancel', () => {
-            if (drag) clearTimeout(drag.timer);
             drag = null;
             renderWheel(false);
         });
@@ -2099,6 +2107,7 @@
             document.getElementById('chordsHint').innerHTML = n === 7
                 ? 'Stack every other note of the scale, starting on each degree, and you get its chords. Capital numerals are major, small ones minor, ° diminished, + augmented. Tap to hear.'
                 : `With ${n} notes, every other note isn't always a third, so each degree gets the chord its own notes can make: major, minor, diminished or augmented if they're there, else sus4 or sus2.${missing.length ? ` Nothing to build on ${missing.join(', ')}.` : ''} Tap to hear.`;
+            requestAnimationFrame(fitChords);
             box.innerHTML = chordList.map((c, i) => `
                 <button class="chord" onclick="playChord(${i}, this)">
                     <span class="numeral">${c.numeral}</span>
@@ -2357,15 +2366,70 @@
             const btn = document.getElementById('playBtn');
             btn.innerHTML = run ? PAUSE_ICON : PLAY_ICON;
             btn.setAttribute('aria-label', run ? 'Pause' : 'Play the scale');
+            // While the wheel's middle is looping, the once-through button rests
+            btn.disabled = Boolean(loop);
+        }
+
+        // The middle of the wheel: the scale up and back down, round and round until paused.
+        // Each note is chosen as it comes, so a change on the wheel is heard on the next note.
+        let loop = null;
+
+        function renderHub() {
+            const icon = document.getElementById('hubIcon');
+            if (!icon) return;
+            const x = C, y = C + 32;
+            icon.setAttribute('d', loop
+                ? `M${x - 8} ${y - 8} h5.5 v16 h-5.5 Z M${x + 2.5} ${y - 8} h5.5 v16 h-5.5 Z`
+                : `M${x - 6} ${y - 9} L${x + 9} ${y} L${x - 6} ${y + 9} Z`);
+            document.getElementById('wheelWrap').classList.toggle('looping', Boolean(loop));
+        }
+
+        function toggleLoop() {
+            if (loop) return stopLoop();
+            stopScale();
+            const ctx = ensureAudio();
+            const bus = ctx.createGain();
+            bus.connect(out);
+            loop = { bus, step: 0, timer: null };
+            const gap = 0.34;
+            const tick = () => {
+                if (!loop) return;
+                const steps = stepsFromRoot();
+                // Up to the octave and back down, the top and bottom played once each
+                const path = [...steps, 12, ...steps.slice(1).reverse()];
+                const s = path[loop.step % path.length];
+                loop.step = (loop.step + 1) % path.length;
+                tone(freqOf(state.root + s), audio.currentTime + 0.03, 0.9, 0.25, bus);
+                pulse(mod12(state.root + s));
+                loop.timer = setTimeout(tick, gap * 1000);
+            };
+            tick();
+            renderHub();
+            renderPlay();
+        }
+
+        function stopLoop() {
+            if (!loop) return;
+            clearTimeout(loop.timer);
+            const t = audio.currentTime;
+            loop.bus.gain.setValueAtTime(loop.bus.gain.value, t);
+            loop.bus.gain.linearRampToValueAtTime(0, t + 0.15);
+            const bus = loop.bus;
+            setTimeout(() => bus.disconnect(), 400);
+            loop = null;
+            renderHub();
+            renderPlay();
         }
 
         function togglePlay() {
+            if (loop) return;
             if (run) stopScale();
             else playScale();
         }
 
         function playScale() {
             stopScale();
+            if (loop) return;   // the loop is already playing it
             const ctx = ensureAudio();
             const steps = stepsFromRoot();
             const bus = ctx.createGain();
@@ -2394,7 +2458,22 @@
             renderPlay();
         }
 
-                function playChord(i, button) {
+                // A long name shrinks until it fits its tile, so it stays whole and centered
+        function fitChords() {
+            document.querySelectorAll('#chords .numeral, #chords .chord-name').forEach(line => {
+                line.style.fontSize = '';
+                const room = line.parentElement.clientWidth - 8;
+                let size = parseFloat(getComputedStyle(line).fontSize);
+                while (line.scrollWidth > room && size > 9) {
+                    size -= 0.5;
+                    line.style.fontSize = size + 'px';
+                }
+            });
+        }
+
+        window.addEventListener('resize', () => requestAnimationFrame(fitChords));
+
+        function playChord(i, button) {
             const ctx = ensureAudio();
             const chord = chordList[i];
             if (!chord) return;
