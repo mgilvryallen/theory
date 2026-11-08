@@ -293,6 +293,16 @@
             cursor: grab;
         }
 
+        .minor-ticks {
+            transform-box: view-box;
+            transform-origin: 200px 200px;
+            transition: transform 0.35s cubic-bezier(0.3, 0.7, 0.25, 1);
+        }
+
+        .minor-ticks.held {
+            transition: none;
+        }
+
         .needle.held {
             transition: none;
             cursor: grabbing;
@@ -410,9 +420,14 @@
 
         .card-head {
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: baseline;
-            gap: 10px;
+            gap: 4px 10px;
+        }
+
+        .card-head .toggle button {
+            white-space: nowrap;
         }
 
         /* A handpan note's ring, breathing out and in with its echoes */
@@ -969,6 +984,120 @@
             text-transform: none;
         }
 
+        /* ---- The floating bar ---- */
+        .float-bar {
+            position: fixed;
+            top: calc(10px + env(safe-area-inset-top));
+            left: 50%;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px 6px 16px;
+            background: var(--paper);
+            border: 1px solid var(--light-tan);
+            border-radius: 999px;
+            box-shadow: 0 6px 22px rgba(44, 36, 22, 0.16);
+            transform: translate(-50%, -140%);
+            opacity: 0;
+            pointer-events: none;
+            transition: transform 0.35s cubic-bezier(0.3, 0.7, 0.25, 1), opacity 0.25s;
+        }
+
+        .float-bar.shown {
+            transform: translate(-50%, 0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .float-key {
+            font-family: 'Rug Pull', Georgia, serif;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+            color: var(--rust);
+            white-space: nowrap;
+        }
+
+        .float-bar .btn {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        /* ---- Circle of fifths: which modes the rings show ---- */
+        .ring-picks {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 12px;
+        }
+
+        .ring-pick {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            font-size: 12px;
+            color: var(--tan);
+        }
+
+        .ring-pick select {
+            font-family: 'Lumios Typewriter', Georgia, serif;
+            font-size: 15px;
+            color: var(--heading);
+            background: var(--parchment);
+            border: 1px solid var(--light-tan);
+            border-radius: 8px;
+            padding: 6px 8px;
+        }
+
+        /* The circle card's key arrows say which way is which: 4ths one way, 5ths the other */
+        .picker > button.labelled {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+            width: 42px;
+        }
+
+        .picker > button.labelled small {
+            font-size: 10px;
+            color: var(--tan);
+            margin-top: 1px;
+        }
+
+        /* ---- Ear ---- */
+        #earCard .card-head {
+            margin-bottom: 8px;
+        }
+
+        .ear-go {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        .ear-go .btn {
+            padding: 10px 22px;
+            font-size: 16px;
+        }
+
+        .ear-settings {
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px dotted var(--light-tan);
+            display: grid;
+            gap: 8px;
+        }
+
+        .ear-settings .row {
+            justify-content: space-between;
+        }
+
+        .ear-settings .hint {
+            font-size: 13px;
+        }
+
         .credit {
             text-align: center;
             margin-top: 24px;
@@ -1001,27 +1130,13 @@
 
             <div class="pickers"></div>
 
-            <div class="play-row">
-                <button class="btn icon" id="playBtn" onclick="togglePlay()" aria-label="Play"></button>
+            <div class="play-row" id="playRow">
+                <button class="btn quiet" id="panBtn" onclick="toggleLoop()">handpan</button>
                 <button class="btn quiet" id="droneBtn" onclick="toggleDrone()">drone</button>
                 <button class="btn quiet" onclick="setScale(state.root, MAJOR, true, true)">back to major</button>
             </div>
 
             <div class="name-box" id="nameBox"></div>
-        </div>
-
-        <!-- Modes side by side -->
-        <div class="card" style="--accent: var(--woad)">
-            <h2>The Modes, Side by Side</h2>
-            <p class="hint">The seven modes of the major scale, brightest at the top: each one down lowers one note of the one above. Tap a row to put it on the wheel.</p>
-            <div class="row" style="margin-top: 12px; justify-content: space-between">
-                <span class="hint">compared to</span>
-                <div class="toggle" id="modeCompare">
-                    <button onclick="setModeCompare('above')">the one above</button><button onclick="setModeCompare('major')">major</button><button onclick="setModeCompare('minor')">minor</button>
-                </div>
-            </div>
-            <table class="modes" id="modesTable"></table>
-            <p class="hint" id="compareNote" style="font-size: 13px; margin-top: 8px"></p>
         </div>
 
         <!-- Chords -->
@@ -1041,7 +1156,11 @@
         <!-- Circle of fifths -->
         <div class="card" style="--accent: var(--ochre)">
             <h2>The Circle of Fifths</h2>
-            <p class="hint">Each step clockwise is a fifth up and one more sharp (or one fewer flat). Neighbors share six of their seven notes, which is why songs move to them so easily. Outside: major keys. Inside: their relative minors. Tap one to put it on the wheel.</p>
+            <p class="hint">Each step clockwise is a fifth up and one more sharp (or one fewer flat). Neighbors share six of their seven notes, which is why songs move to them so easily. Each spot is one key signature; the rings show which note each mode starts on with it. Tap one to put it on the wheel.</p>
+            <div class="ring-picks">
+                <label class="ring-pick"><span>outside ring</span><select id="outerMode" onchange="setRingMode('outer', Number(this.value))"></select></label>
+                <label class="ring-pick"><span>inside ring</span><select id="innerMode" onchange="setRingMode('inner', Number(this.value))"></select></label>
+            </div>
             <svg id="fifths" viewBox="0 0 400 400" role="img" aria-label="Circle of fifths"></svg>
             <div class="line" id="fifthsLine"></div>
             <p class="hint" id="fifthsText" style="margin-top: 8px"></p>
@@ -1049,32 +1168,52 @@
         </div>
 
         <!-- Ear -->
-        <div class="card" style="--accent: var(--teal)">
-            <h2>Ear: Name That Interval</h2>
-            <p class="hint">Two notes, one after the other. How far apart are they? Each one comes with a tune that starts on it, to help it stick. Between pairs, tap any interval to hear it.</p>
-            <div class="row" style="margin-top: 12px; justify-content: space-between">
-                <div class="row">
-                    <button class="btn" style="--accent: var(--teal)" onclick="newQuestion()" id="earPlay">new pair</button>
-                    <button class="btn quiet" onclick="replay()" id="earAgain" hidden>again</button>
-                </div>
-                <div class="toggle" id="earLevel">
-                    <button onclick="setEarLevel(0)">starter</button><button onclick="setEarLevel(1)">all</button>
+        <div class="card" style="--accent: var(--teal)" id="earCard">
+            <div class="card-head">
+                <h2>Ear: Intervals</h2>
+                <div class="toggle ear-mode" id="earMode">
+                    <button onclick="setEarMode('test')">test me</button><button onclick="setEarMode('explore')">explore</button>
                 </div>
             </div>
-            <div class="row" style="margin-top: 12px; justify-content: space-between">
-                <span class="hint">starting from</span>
-                <div class="toggle" id="earRoot">
-                    <button onclick="setEarRoot('random')">anywhere</button><button onclick="setEarRoot('key')">the 1 of <span id="earKey">C</span></button>
+            <div id="earTest">
+                <p class="hint">Two notes, one after the other. How far apart are they?</p>
+                <div class="ear-go">
+                    <button class="btn" style="--accent: var(--teal)" onclick="newQuestion()" id="earPlay">play a pair</button>
+                    <button class="link-btn" onclick="replay()" id="earAgain" hidden>hear it again</button>
+                    <span class="streak" id="streak"></span>
                 </div>
+            </div>
+            <div id="earExplore" hidden>
+                <p class="hint">Tap an interval to hear it, with a tune that starts on it to help it stick.</p>
             </div>
             <div class="choices" id="choices"></div>
             <div class="ear-result" id="earResult"></div>
-            <div class="streak" id="streak"></div>
+            <div class="ear-settings">
+                <div class="row" id="earLevelRow">
+                    <span class="hint">intervals</span>
+                    <div class="toggle" id="earLevel">
+                        <button onclick="setEarLevel(0)">starter</button><button onclick="setEarLevel(1)">all</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <span class="hint">starting from</span>
+                    <div class="toggle" id="earRoot">
+                        <button onclick="setEarRoot('random')">anywhere</button><button onclick="setEarRoot('key')">the <span class="num">1</span> of <span id="earKey">C</span></button>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="card" style="--accent: var(--tan)">
             <h2>Practice It</h2>
             <p class="hint">Play your scale against a drone: <a id="droneLink" href="../drone/">open Drone in <span id="droneKey">C</span></a>. Sit on each note of the scale over the drone and listen to how it leans: the 1 and 5 rest, the 4 wants down, the 7 wants up.</p>
+        </div>
+
+        <!-- While the handpan or drone plays and their buttons are scrolled away, this follows -->
+        <div class="float-bar" id="floatBar" aria-hidden="true">
+            <span class="float-key" id="floatKey"></span>
+            <button class="btn quiet" id="floatPan" onclick="toggleLoop()">handpan</button>
+            <button class="btn quiet" id="floatDrone" onclick="toggleDrone()">drone</button>
         </div>
 
         <div class="credit">
@@ -1193,7 +1332,7 @@
 
         function save() {
             try {
-                localStorage.setItem(STORE, JSON.stringify({ notes: state.notes, root: state.root, chordSize: state.chordSize, earLevel: state.earLevel, modeCompare: state.modeCompare, earRoot: state.earRoot }));
+                localStorage.setItem(STORE, JSON.stringify({ notes: state.notes, root: state.root, chordSize: state.chordSize, earLevel: state.earLevel, earRoot: state.earRoot, earMode: state.earMode, outerMode: state.outerMode, innerMode: state.innerMode }));
             } catch (e) {}
         }
 
@@ -1314,7 +1453,7 @@
         // drag anywhere on the ring to carry the scale to a new key.
         const C = 200;
         // The compass ring's outer edge leaves the dots the same gap inside as they have outside
-        const R_NAMES = 178, R_SET = 124, R_HUB = 72, R_COMPASS = R_SET - 19 - (R_NAMES - 20 - (R_SET + 19));
+        const R_NAMES = 178, R_SET = 124, R_HUB = 60, R_COMPASS = R_SET - 19 - (R_NAMES - 20 - (R_SET + 19));
         const svgNS = 'http://www.w3.org/2000/svg';
 
         function polar(r, slot) {
@@ -1346,17 +1485,17 @@
             el('circle', { cx: C, cy: C, r: R_HUB - 1, id: 'hub', class: 'hub' }, svg);
             // The compass: a semitone tick at each note (darker under yours) with four small ones
             // between, and a needle pointing at the 1. Drag anywhere in the band to swing it.
-            const ticks = el('g', { id: 'compassTicks' }, svg);
+            // The small ticks turn with the needle as you drag it; the semitone ticks stay put
+            // on the notes, so there's something for them to move past
+            const minor = el('g', { id: 'minorTicks', class: 'minor-ticks' }, svg);
             for (let k = 0; k < 60; k++) {
-                if (k % 5 === 0) {
-                    el('line', { id: 'tick' + k / 5, class: 'compass-tick' }, ticks);
-                } else {
-                    // Four small ticks between each semitone
-                    const [x1, y1] = polar(R_COMPASS - 2, k / 5);
-                    const [x2, y2] = polar(R_COMPASS - 5, k / 5);
-                    el('line', { x1, y1, x2, y2, class: 'compass-minor' }, ticks);
-                }
+                if (k % 5 === 0) continue;
+                const [x1, y1] = polar(R_COMPASS - 2, k / 5);
+                const [x2, y2] = polar(R_COMPASS - 6, k / 5);
+                el('line', { x1, y1, x2, y2, class: 'compass-minor' }, minor);
             }
+            const ticks = el('g', { id: 'compassTicks' }, svg);
+            for (let pc = 0; pc < 12; pc++) el('line', { id: 'tick' + pc, class: 'compass-tick' }, ticks);
             const needle = el('g', { id: 'needle', class: 'needle' }, svg);
             // A gold diamond spanning the band, its longer half pointing out at the 1
             const top = C - R_COMPASS + 1, mid = C - R_COMPASS + 8, tail = C - R_HUB - 2, half = 5;
@@ -1486,10 +1625,10 @@
             renderWheel(instant);
             renderPickers();
             renderName();
-            renderModes();
             renderChords();
             renderFifths();
             const key = rootName();
+            if (document.getElementById('floatBar')) renderFloat();
             document.getElementById('droneKey').textContent = key;
             document.getElementById('droneLink').href = `../drone/#key=${encodeURIComponent(DRONE_KEYS[state.root])}`;
             if (droneNodes) moveDrone();
@@ -1604,9 +1743,9 @@
                 const keys = order.map(pc => `<option value="${pc}">${KEY_NAMES[pc]}</option>`).join('');
                 box.innerHTML = `
                 <div class="picker">
-                    <button onclick="${fifths ? 'transpose(5)' : 'transpose(-1)'}" aria-label="${fifths ? 'Down a fifth' : 'Key down a half step'}">‹</button>
-                    <label class="pick"><span class="pick-label">${fifths ? 'key by 5ths' : 'key'}</span><span class="pick-value" data-show="key"></span><select data-pick="key" onchange="pickKey(Number(this.value))" aria-label="Key">${keys}</select></label>
-                    <button onclick="${fifths ? 'transpose(-5)' : 'transpose(1)'}" aria-label="${fifths ? 'Up a fifth' : 'Key up a half step'}">›</button>
+                    <button onclick="${fifths ? 'transpose(5)' : 'transpose(-1)'}" aria-label="${fifths ? 'Up a fourth' : 'Key down a half step'}"${fifths ? ' class="labelled"' : ''}>‹${fifths ? '<small>4ths</small>' : ''}</button>
+                    <label class="pick"><span class="pick-label">key</span><span class="pick-value" data-show="key"></span><select data-pick="key" onchange="pickKey(Number(this.value))" aria-label="Key">${keys}</select></label>
+                    <button onclick="${fifths ? 'transpose(-5)' : 'transpose(1)'}" aria-label="${fifths ? 'Up a fifth' : 'Key up a half step'}"${fifths ? ' class="labelled"' : ''}>›${fifths ? '<small>5ths</small>' : ''}</button>
                 </div>
                 <div class="picker">
                     <button onclick="stepScale(-1)" aria-label="Previous scale">‹</button>
@@ -1698,6 +1837,9 @@
             needle.dataset.angle = swing;
             needle.classList.toggle('held', !ease);
             needle.style.transform = `rotate(${swing}deg)`;
+            const minor = document.getElementById('minorTicks');
+            minor.classList.toggle('held', !ease);
+            minor.style.transform = `rotate(${swing}deg)`;
         }
 
         // ---- Dragging and holding ----
@@ -1714,8 +1856,9 @@
             const { deg, r } = angleAt(event);
             if (r > 197) return;
             // The needle: near the centre's edge, pointing at the 1
-            const onNeedle = r > R_HUB && r < R_COMPASS + 3;
-            const ring = onNeedle ? 'needle' : r > R_NAMES - 20 ? 'names' : r < R_HUB ? 'hub' : 'set';
+            // The compass is easy to catch: from just outside the play button to the dots' edge
+            const onNeedle = r > 50 && r < R_COMPASS + 5;
+            const ring = onNeedle ? 'needle' : r > R_NAMES - 20 ? 'names' : r <= 50 ? 'hub' : 'set';
             drag = { ring, last: deg, moved: 0, pc: slotAt(deg), onNote: ring === 'set' && Math.abs(r - R_SET) < 30 };
             wrap.setPointerCapture(event.pointerId);
         });
@@ -1751,7 +1894,7 @@
             drag = null;
             if (Math.abs(d.moved) < 6) {
                 if (d.ring === 'names') playNote(d.pc);
-                else if (d.ring === 'hub') toggleLoop();
+                else if (d.ring === 'hub') togglePlay();
                 else if (d.ring === 'needle') {
                     if (d.pc !== state.root && state.notes.includes(d.pc)) moveOneTo(d.pc);
                 }
@@ -1815,84 +1958,6 @@
                 }).join(', ') + '</p>';
             }
             document.getElementById('nameBox').innerHTML = html;
-        }
-
-        // ---- Modes side by side ----
-        // Brightest to darkest: each lowers one note of the one above
-        const LADDER = [
-            { name: 'Lydian', steps: [0, 2, 4, 6, 7, 9, 11], feel: 'dreamy, floating' },
-            { name: 'Ionian', steps: [0, 2, 4, 5, 7, 9, 11], feel: 'bright, home' },
-            { name: 'Mixolydian', steps: [0, 2, 4, 5, 7, 9, 10], feel: 'bright, loose, fiddle tunes' },
-            { name: 'Dorian', steps: [0, 2, 3, 5, 7, 9, 10], feel: 'minor with a lift' },
-            { name: 'Aeolian', steps: [0, 2, 3, 5, 7, 8, 10], feel: 'plain, sad, old' },
-            { name: 'Phrygian', steps: [0, 1, 3, 5, 7, 8, 10], feel: 'dark, Spanish' },
-            { name: 'Locrian', steps: [0, 1, 3, 5, 6, 8, 10], feel: 'unsettled, no fifth' }
-        ];
-
-        function diffAgainst(steps, ref) {
-            return steps.map((s, i) => s - ref[i]);
-        }
-
-        function describe(mode) {
-            const vsMajor = diffAgainst(mode.steps, MAJOR);
-            const vsMinor = diffAgainst(mode.steps, MINOR);
-            const count = d => d.filter(Boolean).length;
-            const say = (d, base) => {
-                const changes = d.map((x, i) => x ? `${x > 0 ? 'raised' : 'lowered'} ${i + 1}` : null).filter(Boolean);
-                if (!changes.length) return `the ${base} scale itself`;
-                return `${base} with a ${changes.join(' and ')}`;
-            };
-            if (count(vsMajor) === 0) return 'the major scale itself';
-            if (count(vsMinor) === 0) return 'the natural minor itself';
-            return count(vsMajor) <= count(vsMinor) ? say(vsMajor, 'major') : say(vsMinor, 'minor');
-        }
-
-        function setModeCompare(c) {
-            state.modeCompare = c;
-            save();
-            renderModes();
-        }
-
-        const COMPARE_NOTE = {
-            above: 'Marked: the one note that changed from the mode above.',
-            major: 'Filled: notes that differ from major. Outlined: the one note that changed from the mode above.',
-            minor: 'Filled: notes that differ from natural minor. Outlined: the one note that changed from the mode above.'
-        };
-
-        function renderModes() {
-            const compare = state.modeCompare || 'above';
-            document.querySelectorAll('#modeCompare button').forEach((b, i) => b.classList.toggle('on', ['above', 'major', 'minor'][i] === compare));
-            document.getElementById('compareNote').textContent = COMPARE_NOTE[compare];
-            const current = maskOf(stepsFromRoot());
-            let html = '<tr><th></th>' + [1, 2, 3, 4, 5, 6, 7].map(n => `<th>${n}</th>`).join('') + '</tr>';
-            LADDER.forEach((mode, row) => {
-                const above = row > 0 ? LADDER[row - 1] : null;
-                const ref = compare === 'major' ? MAJOR : compare === 'minor' ? MINOR : above ? above.steps : mode.steps;
-                const labels = degreeLabels(mode.steps);
-                const cells = mode.steps.map((s, i) => {
-                    const differs = s !== ref[i];
-                    const stepped = compare !== 'above' && above && above.steps[i] !== s;
-                    return `<td><span class="cell${differs ? ' diff' : ''}${stepped ? ' step' : ''}">${labels[i]}</span></td>`;
-                }).join('');
-                let line;
-                if (compare === 'above') {
-                    const i = above ? mode.steps.findIndex((s, k) => s !== above.steps[k]) : -1;
-                    line = above ? `${above.name} with its ${degreeLabels(above.steps)[i]} lowered` : 'the brightest of the seven';
-                } else {
-                    const changes = mode.steps.map((s, i) => s !== ref[i] ? labels[i] : null).filter(Boolean);
-                    const base = compare === 'major' ? 'major' : 'minor';
-                    line = changes.length ? `${base} with ${changes.join(' ')}` : `the ${compare === 'major' ? 'major scale' : 'natural minor'} itself`;
-                }
-                const isCurrent = maskOf(mode.steps) === current;
-                html += `<tr class="${isCurrent ? 'current' : ''}" onclick="pickMode(${row})"><td class="mode-name"><b>${mode.name}</b></td>${cells}</tr>`;
-                html += `<tr class="${isCurrent ? 'current' : ''}" onclick="pickMode(${row})"><td class="mode-line" colspan="8">${line} · ${mode.feel}</td></tr>`;
-            });
-            document.getElementById('modesTable').innerHTML = html;
-        }
-
-        function pickMode(row) {
-            setScale(state.root, LADDER[row].steps, true);
-            playScale();
         }
 
         // ---- Chords ----
@@ -2117,7 +2182,31 @@
             return null;
         }
 
+        // The modes of major, in order from their parent's 1. Each spot on the circle is one key
+        // signature; a ring shows the note each chosen mode starts on with that signature.
+        const RING_MODES = ['Major', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Natural Minor', 'Locrian'];
+        const ringMode = which => (which === 'outer' ? state.outerMode ?? 0 : state.innerMode ?? 5);
+
+        function setRingMode(which, mode) {
+            state[which === 'outer' ? 'outerMode' : 'innerMode'] = mode;
+            save();
+            renderFifths();
+        }
+
+        function modeSteps(mode) {
+            return MAJOR.map(s => mod12(s - MAJOR[mode])).sort((a, b) => a - b);
+        }
+
+        function renderRingPicks() {
+            const outer = ringMode('outer'), inner = ringMode('inner');
+            // Each ring offers every mode but the one on the other ring
+            const options = (skip, pick) => RING_MODES.map((name, i) => i === skip ? '' : `<option value="${i}"${i === pick ? ' selected' : ''}>${name}</option>`).join('');
+            document.getElementById('outerMode').innerHTML = options(inner, outer);
+            document.getElementById('innerMode').innerHTML = options(outer, inner);
+        }
+
         function renderFifths() {
+            renderRingPicks();
             const svg = document.getElementById('fifths');
             svg.innerHTML = '';
             const c = 200;
@@ -2147,39 +2236,44 @@
             el('circle', { cx: c, cy: c, r: 112, fill: '#fffdf7', stroke: '#c9bda5' }, svg);
             el('circle', { cx: c, cy: c, r: 66, fill: '#f1ead8', stroke: '#c9bda5' }, svg);
             const home = parentMajor();
+            const om = ringMode('outer'), im = ringMode('inner');
+            const minorish = mode => modeSteps(mode).includes(3);
             for (let i = 0; i < 12; i++) {
-                const pc = mod12(i * 7);
+                const pc = mod12(i * 7);   // the key signature's major 1
+                const names = spell(pc, MAJOR);
+                const outerTonic = mod12(pc + MAJOR[om]), innerTonic = mod12(pc + MAJOR[im]);
                 const a = (i * 30 - 90) * Math.PI / 180;
                 const [ox, oy] = [c + 140 * Math.cos(a), c + 140 * Math.sin(a)];
                 const [ix, iy] = [c + 89 * Math.cos(a), c + 89 * Math.sin(a)];
                 const isHome = home === pc;
                 const isNear = home !== null && (mod12(home + 7) === pc || mod12(home + 5) === pc);
+                const innerOn = isHome && state.root === innerTonic;
+                const outerOn = isHome && !innerOn;
                 const outer = el('g', { class: 'key-slot' }, svg);
-                el('circle', { cx: ox, cy: oy, r: 21, fill: isHome ? '#b07d2a' : isNear ? '#f1ead8' : 'transparent', stroke: isNear ? '#b07d2a' : 'none' }, outer);
-                const t = el('text', { x: ox, y: oy - 3, class: 'key-name', 'font-size': 17, fill: isHome ? '#f7f3e9' : '#4a3f2f' }, outer);
-                t.textContent = KEY_NAMES[pc] === 'F♯' ? 'F♯/G♭' : KEY_NAMES[pc];
-                if (KEY_NAMES[pc] === 'F♯') t.setAttribute('font-size', 12);
+                el('circle', { cx: ox, cy: oy, r: 21, fill: outerOn ? '#b07d2a' : isNear ? '#f1ead8' : 'transparent', stroke: isNear || (isHome && innerOn) ? '#b07d2a' : 'none' }, outer);
+                const t = el('text', { x: ox, y: oy - 3, class: 'key-name', 'font-size': 17, fill: outerOn ? '#f7f3e9' : '#4a3f2f' }, outer);
+                t.textContent = names[om];
                 const sig = el('text', { x: ox, y: oy + 12, class: 'sig' }, outer);
                 sig.textContent = signature(pc);
-                if (isHome) sig.setAttribute('style', 'fill:#f7f3e9');
+                if (outerOn) sig.setAttribute('style', 'fill:#f7f3e9');
                 outer.addEventListener('click', () => {
-                    setScale(pc, MAJOR);
+                    setScale(outerTonic, modeSteps(om));
                     playScale();
                 });
                 const inner = el('g', { class: 'key-slot' }, svg);
-                const minorPc = mod12(pc + 9);
-                const isHomeMinor = isHome && state.root === minorPc;
-                el('circle', { cx: ix, cy: iy, r: 17, fill: isHomeMinor ? '#7b4b6a' : 'transparent' }, inner);
-                const m = el('text', { x: ix, y: iy, class: 'key-name', 'font-size': 15, 'font-weight': 'bold', style: "font-family: 'Lumios Typewriter', Georgia, serif", fill: isHomeMinor ? '#f7f3e9' : '#7b4b6a' }, inner);
-                m.textContent = MINOR_NAMES[i];
+                el('circle', { cx: ix, cy: iy, r: 17, fill: innerOn ? '#7b4b6a' : 'transparent' }, inner);
+                const m = el('text', { x: ix, y: iy, class: 'key-name', 'font-size': 15, 'font-weight': 'bold', style: "font-family: 'Lumios Typewriter', Georgia, serif", fill: innerOn ? '#f7f3e9' : '#7b4b6a' }, inner);
+                // Minor-sounding modes in small letters, as minor keys are written
+                m.textContent = minorish(im) ? names[im].toLowerCase() : names[im];
                 inner.addEventListener('click', () => {
-                    setScale(minorPc, MINOR);
+                    setScale(innerTonic, modeSteps(im));
                     playScale();
                 });
             }
             if (home !== null) {
+                const known = SCALE_BY_MASK.get(maskOf(stepsFromRoot()));
                 const mid = el('text', { x: c, y: c, class: 'key-name', 'font-size': 15, fill: '#b07d2a' }, svg);
-                mid.textContent = `${KEY_NAMES[home]} major`;
+                mid.textContent = `${rootName()} ${known ? known.name.toLowerCase() : ''}`;
             }
             renderLine('fifthsLine', null, 'letters');
             const text = document.getElementById('fifthsText');
@@ -2277,12 +2371,14 @@
         const PAUSE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4.2" height="14" rx="1"/><rect x="13.8" y="5" width="4.2" height="14" rx="1"/></svg>';
         let run = null;
 
+        // The middle of the wheel plays the scale once (pause stops it); the handpan and drone
+        // have their own buttons, here and in the floating bar, and the scale plays over either
         function renderPlay() {
-            const btn = document.getElementById('playBtn');
-            btn.innerHTML = run ? PAUSE_ICON : PLAY_ICON;
-            btn.setAttribute('aria-label', run ? 'Pause' : 'Play the scale');
-            // While the wheel's middle is looping, the once-through button rests
-            btn.disabled = Boolean(loop);
+            renderHub();
+            const pan = Boolean(loop), drone = Boolean(droneNodes);
+            ['panBtn', 'floatPan'].forEach(id => document.getElementById(id).classList.toggle('on', pan));
+            ['droneBtn', 'floatDrone'].forEach(id => document.getElementById(id).classList.toggle('on', drone));
+            renderFloat();
         }
 
         // The middle of the wheel: the scale up and back down, round and round until paused.
@@ -2293,10 +2389,10 @@
             const icon = document.getElementById('hubIcon');
             if (!icon) return;
             const x = C, y = C + 32;
-            icon.setAttribute('d', loop
+            icon.setAttribute('d', run
                 ? `M${x - 6.5} ${y - 6.5} h4.5 v13 h-4.5 Z M${x + 2} ${y - 6.5} h4.5 v13 h-4.5 Z`
                 : `M${x - 4.5} ${y - 7.5} L${x + 8} ${y} L${x - 4.5} ${y + 7.5} Z`);
-            document.getElementById('wheelWrap').classList.toggle('looping', Boolean(loop));
+            document.getElementById('hub').setAttribute('aria-label', run ? 'Pause' : 'Play the scale');
         }
 
         // A handpan: a sine with its octave and a ringing twelfth above, struck softly, each
@@ -2398,7 +2494,7 @@
             tailFeedback.gain.value = 0.66;
             thin.connect(tailSend).connect(tail).connect(tailWear).connect(tailThin).connect(tailFeedback).connect(tail);
             const into = ctx.createGain();
-            into.gain.value = 0.27;   // half as hard into the tape: a quarter of the grit
+            into.gain.value = 0.16;   // gently into the tape: just a little colour, no grit
             const tape = ctx.createWaveShaper();
             const curve = new Float32Array(1024);
             for (let i = 0; i < curve.length; i++) {
@@ -2411,7 +2507,7 @@
             dc.type = 'highpass';
             dc.frequency.value = 30;
             const wet = ctx.createGain();
-            wet.gain.value = 1.4;     // back up to the same loudness
+            wet.gain.value = 2.36;    // back up to the same loudness
             thin.connect(into).connect(tape).connect(dc).connect(wet).connect(out);
             tailThin.connect(into);
             // Bars of 4/4 in eighth notes, timed off the audio clock so the bars stay even
@@ -2430,7 +2526,7 @@
                     // ding, sometimes an octave up. (The melody finds the 1 on its own too.)
                     const r = Math.random();
                     const octave = r < 0.7 ? -12 : r < 0.9 ? 0 : 12;
-                    panTone(freqOf(state.root + octave), t, octave < 0 ? 0.5 : 0.3, bus);
+                    panTone(freqOf(state.root + octave), t, octave < 0 ? 0.42 : 0.27, bus);
                     echoRing(state.root, t, octave < 0 ? 1 : 0.75);
                     // The melody picks up again near the bottom or the middle of the pan
                     if (Math.random() < 0.35) loop.at = Math.min(pan.length - 1, Math.floor(Math.random() * 5));
@@ -2452,7 +2548,7 @@
                         return [to, w * pull * (colors.includes(mod12(pan[to])) ? 2.2 : 1)];
                     }));
                     const s = pan[loop.at];
-                    const soft = 0.22 + Math.random() * 0.14;
+                    const soft = 0.19 + Math.random() * 0.12;
                     panTone(freqOf(state.root + s), t, soft, bus);
                     echoRing(mod12(state.root + s), t, 0.55 + soft);
                     // Now and then a second note with it, a third or so below
@@ -2502,14 +2598,12 @@
         }
 
         function togglePlay() {
-            if (loop) return;
             if (run) stopScale();
             else playScale();
         }
 
         function playScale() {
             stopScale();
-            if (loop) return;   // the loop is already playing it
             const ctx = ensureAudio();
             const steps = stepsFromRoot();
             const bus = ctx.createGain();
@@ -2576,6 +2670,7 @@
                 setTimeout(() => nodes.oscs.forEach(o => o.stop()), 1500);
                 droneNodes = null;
                 btn.classList.remove('on');
+                renderPlay();
                 return;
             }
             const gain = ctx.createGain();
@@ -2599,6 +2694,7 @@
             moveDrone();
             gain.gain.setTargetAtTime(0.5, ctx.currentTime, 0.4);
             btn.classList.add('on');
+            renderPlay();
         }
 
         function moveDrone() {
@@ -2624,6 +2720,16 @@
         const STARTER = [3, 4, 5, 7, 12];
         let question = null;
         let streak = 0;
+
+        // Two ways in: test me (play a pair, name it) and explore (tap any interval to hear it)
+        function setEarMode(mode) {
+            state.earMode = mode;
+            save();
+            showResult('');
+            renderEar();
+        }
+
+        const earMode = () => state.earMode === 'explore' ? 'explore' : 'test';
 
         function setEarLevel(level) {
             state.earLevel = level;
@@ -2677,9 +2783,10 @@
             if (question) playInterval(question.interval.semis, question.low);
         }
 
-        // With a pair waiting, a tap is an answer; otherwise it plays that interval to learn it
+        // Exploring, a tap plays that interval. Testing, it answers the pair that's waiting (with
+        // none waiting, or once it's answered, a tap plays it too, to compare)
         function answer(semis, button) {
-            if (!question || question.answered) {
+            if (earMode() === 'explore' || !question || question.answered) {
                 const interval = INTERVALS.find(i => i.semis === semis);
                 playInterval(semis, lowNote());
                 document.querySelectorAll('.choice').forEach(c => c.classList.remove('right', 'wrong', 'heard'));
@@ -2693,6 +2800,7 @@
                 question.answered = true;
                 streak++;
                 showResult(`Yes, a <b>${question.interval.name}</b>. Think: ${question.interval.tune}.`);
+                document.getElementById('earPlay').textContent = 'next pair';
             } else {
                 streak = 0;
                 const guessed = INTERVALS.find(i => i.semis === semis);
@@ -2703,12 +2811,44 @@
         }
 
         function renderEar() {
+            const mode = earMode();
+            document.querySelectorAll('#earMode button').forEach((b, i) => b.classList.toggle('on', ['test', 'explore'][i] === mode));
+            document.getElementById('earTest').hidden = mode !== 'test';
+            document.getElementById('earExplore').hidden = mode !== 'explore';
+            document.getElementById('earLevelRow').hidden = mode !== 'test';
             document.querySelectorAll('#earLevel button').forEach((b, i) => b.classList.toggle('on', i === state.earLevel));
             document.getElementById('earAgain').hidden = !question;
-            document.getElementById('earPlay').textContent = question ? 'new pair' : 'play a pair';
+            document.getElementById('earPlay').textContent = question ? (question.answered ? 'next pair' : 'new pair') : 'play a pair';
             document.querySelectorAll('#earRoot button').forEach((b, i) => b.classList.toggle('on', ['random', 'key'][i] === (state.earRoot || 'random')));
             document.getElementById('earKey').textContent = rootName();
-            document.getElementById('choices').innerHTML = pool().map(i => `<button class="choice" onclick="answer(${i.semis}, this)">${i.name}</button>`).join('');
+            const shown = mode === 'explore' ? INTERVALS : pool();
+            document.getElementById('choices').innerHTML = shown.map(i => `<button class="choice" onclick="answer(${i.semis}, this)">${i.name}</button>`).join('');
+        }
+
+        // ---- The floating bar ----
+        // When the handpan or drone is playing and their buttons scroll off the top, a small bar
+        // follows you down with them. Switch them off from there and it stays, so you can switch
+        // them back on. Once you scroll back up to the buttons it tucks away, and it only comes
+        // back if something is playing as they leave the screen again.
+        let rowInView = true;
+        let floatHeld = false;
+
+        function renderFloat() {
+            const playing = Boolean(loop) || Boolean(droneNodes);
+            if (rowInView) floatHeld = false;
+            else if (playing) floatHeld = true;
+            const bar = document.getElementById('floatBar');
+            bar.classList.toggle('shown', floatHeld);
+            bar.setAttribute('aria-hidden', floatHeld ? 'false' : 'true');
+            const known = SCALE_BY_MASK.get(maskOf(stepsFromRoot()));
+            document.getElementById('floatKey').textContent = `${rootName()} ${known ? known.name.toLowerCase() : ''}`.trim();
+        }
+
+        if ('IntersectionObserver' in window) {
+            new IntersectionObserver(entries => {
+                rowInView = entries[0].isIntersecting;
+                renderFloat();
+            }).observe(document.getElementById('playRow'));
         }
 
         // ---- Start ----
