@@ -152,6 +152,10 @@
             color: var(--heading);
         }
 
+        #wheelHint p + p {
+            margin-top: 6px;
+        }
+
         #wheelHint b.num {
             font-family: 'Lumios Typewriter', Georgia, serif;
             font-weight: bold;
@@ -984,7 +988,12 @@
         <!-- The wheel -->
         <div class="card" style="--accent: var(--rust)">
             <h2>The Wheel</h2>
-            <p class="hint" id="wheelHint"><b>Outside ring:</b> the twelve notes in western music. <b>Inside ring:</b> scale degrees. Tap a dot to add a note to your scale or take one out, and drag the whole ring to move to a new key. <b>Compass ring:</b> drag the gold needle round to move the <b class="num">1</b> to another dot: same notes, new mode. Tap the middle to hear the mode played freely, like a handpan tuned to it.</p>
+            <div class="hint" id="wheelHint">
+                <p><b>Outside ring:</b> The twelve notes in western music.</p>
+                <p><b>Inside ring:</b> The scale degrees. Tap a dot to add a note to your scale or take one out, and drag the ring to move your scale to a new key.</p>
+                <p><b>Compass ring:</b> Where the <b class="num">1</b> is. Drag the needle to move the <b class="num">1</b> to another dot in your scale.</p>
+                <p><b>Center:</b> A generative handpan-style ambient music player, to set the mood of the mode.</p>
+            </div>
 
             <div class="wheel-wrap" id="wheelWrap">
                 <svg id="wheel" viewBox="0 0 400 400" role="img" aria-label="Scale wheel"></svg>
