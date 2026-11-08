@@ -315,8 +315,13 @@
             stroke-width: 1.6;
         }
 
+        .hub-btn {
+            fill: var(--rust);
+            pointer-events: none;
+        }
+
         .hub-icon {
-            fill: var(--green);
+            fill: var(--parchment);
             pointer-events: none;
         }
 
@@ -975,7 +980,7 @@
         <!-- The wheel -->
         <div class="card" style="--accent: var(--rust)">
             <h2>The Wheel</h2>
-            <p class="hint" id="wheelHint"><b>Outside ring:</b> the twelve notes in western music. <b>Inside ring:</b> scale degrees. Tap a dot to add a note to your scale or take one out. Drag the whole ring to move to a new key. Drag the needle in the middle to move the <b class="num">1</b> to another dot: same notes, new mode. Tap the middle to hear the mode played freely, like a handpan tuned to it.</p>
+            <p class="hint" id="wheelHint"><b>Outside ring:</b> the twelve notes in western music. <b>Inside ring:</b> scale degrees. Tap a dot to add a note to your scale or take one out. Drag the whole ring to move to a new key. Drag the compass needle round its thin ring to move the <b class="num">1</b> to another dot: same notes, new mode. Tap the middle to hear the mode played freely, like a handpan tuned to it.</p>
 
             <div class="wheel-wrap" id="wheelWrap">
                 <svg id="wheel" viewBox="0 0 400 400" role="img" aria-label="Scale wheel"></svg>
@@ -1295,7 +1300,7 @@
         // numbered from the 1. Tap a note to add it or take it out, hold one to make it the 1,
         // drag anywhere on the ring to carry the scale to a new key.
         const C = 200;
-        const R_NAMES = 178, R_SET = 124, R_HUB = 72;
+        const R_NAMES = 178, R_SET = 124, R_HUB = 72, R_COMPASS = 99;
         const svgNS = 'http://www.w3.org/2000/svg';
 
         function polar(r, slot) {
@@ -1315,6 +1320,8 @@
             svg.innerHTML = '';
             el('circle', { cx: C, cy: C, r: 197, fill: '#f7f3e9', stroke: '#c9bda5' }, svg);
             el('circle', { cx: C, cy: C, r: R_NAMES - 20, fill: '#f1ead8', stroke: '#c9bda5' }, svg);
+            // The compass ring: a thin band between the middle and your notes
+            el('circle', { cx: C, cy: C, r: R_COMPASS, fill: '#e8dec6', stroke: '#c9bda5' }, svg);
             el('circle', { cx: C, cy: C, r: R_HUB, fill: '#fffdf7', stroke: '#c9bda5' }, svg);
             const names = el('g', { id: 'names' }, svg);
             for (let pc = 0; pc < 12; pc++) {
@@ -1323,18 +1330,19 @@
             }
             el('g', { id: 'setRing', class: 'spin' }, svg);
             el('circle', { cx: C, cy: C, r: R_HUB - 1, id: 'hub', class: 'hub' }, svg);
-            // The compass: twelve ticks round the edge of the middle (longer where your notes are)
-            // and a needle pointing at the 1. Drag the needle round to make another note the 1.
+            // The compass: twelve ticks round the band (longer where your notes are) and a needle
+            // pointing at the 1. Drag anywhere in the band to swing the 1 to another note.
             const ticks = el('g', { id: 'compassTicks' }, svg);
             for (let pc = 0; pc < 12; pc++) el('line', { id: 'tick' + pc, class: 'compass-tick' }, ticks);
             const needle = el('g', { id: 'needle', class: 'needle' }, svg);
-            const top = C - R_HUB + 3, mid = C - R_HUB + 20, tail = C - R_HUB + 40, half = 7.5;
+            const top = C - R_COMPASS + 2, mid = C - R_COMPASS + 12, tail = C - R_HUB - 3, half = 6.5;
             el('path', { d: `M${C} ${top} L${C + half} ${mid} L${C - half} ${mid} Z`, class: 'needle-point' }, needle);
             el('path', { d: `M${C - half} ${mid} L${C + half} ${mid} L${C} ${tail} Z`, class: 'needle-tail' }, needle);
             el('circle', { cx: C, cy: mid, r: 2, class: 'needle-pin' }, needle);
             el('text', { x: C, y: C - 20, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 26px; fill: #a0522d' }, svg);
             el('text', { x: C, y: C + 4, class: 'note-name', id: 'centerSub', style: 'font-size: 12px; fill: #6b5d4f' }, svg);
-            // Play and pause, under the name: the scale round and round
+            // Play and pause, under the name: a round button, like the one below the wheel
+            el('circle', { cx: C, cy: C + 32, r: 16, class: 'hub-btn' }, svg);
             el('path', { id: 'hubIcon', class: 'hub-icon', d: '' }, svg);
             renderWheel(true);
         }
@@ -1415,8 +1423,8 @@
             // The compass ticks: every semitone, longer and darker under your scale's notes
             for (let pc = 0; pc < 12; pc++) {
                 const lit = pcs.includes(pc);
-                const [x1, y1] = polar(R_HUB - 4, pc);
-                const [x2, y2] = polar(R_HUB - (lit ? 13 : 8), pc);
+                const [x1, y1] = polar(R_COMPASS - 3, pc);
+                const [x2, y2] = polar(R_COMPASS - (lit ? 13 : 8), pc);
                 const tick = document.getElementById('tick' + pc);
                 tick.setAttribute('x1', x1); tick.setAttribute('y1', y1);
                 tick.setAttribute('x2', x2); tick.setAttribute('y2', y2);
@@ -1684,8 +1692,7 @@
             const { deg, r } = angleAt(event);
             if (r > 197) return;
             // The needle: near the centre's edge, pointing at the 1
-            const toOne = Math.abs(((deg - state.root * 30) % 360 + 540) % 360 - 180);
-            const onNeedle = r > R_HUB - 42 && r < R_HUB + 6 && toOne < 24;
+            const onNeedle = r > R_HUB && r < R_COMPASS + 3;
             const ring = onNeedle ? 'needle' : r > R_NAMES - 20 ? 'names' : r < R_HUB ? 'hub' : 'set';
             drag = { ring, last: deg, moved: 0, pc: slotAt(deg), onNote: ring === 'set' && Math.abs(r - R_SET) < 30 };
             wrap.setPointerCapture(event.pointerId);
@@ -1722,7 +1729,10 @@
             drag = null;
             if (Math.abs(d.moved) < 6) {
                 if (d.ring === 'names') playNote(d.pc);
-                else if (d.ring === 'hub' || d.ring === 'needle') toggleLoop();
+                else if (d.ring === 'hub') toggleLoop();
+                else if (d.ring === 'needle') {
+                    if (d.pc !== state.root && state.notes.includes(d.pc)) moveOneTo(d.pc);
+                }
                 else if (d.onNote) toggleNote(d.pc);
                 return;
             }
@@ -2262,8 +2272,8 @@
             if (!icon) return;
             const x = C, y = C + 32;
             icon.setAttribute('d', loop
-                ? `M${x - 8} ${y - 8} h5.5 v16 h-5.5 Z M${x + 2.5} ${y - 8} h5.5 v16 h-5.5 Z`
-                : `M${x - 6} ${y - 9} L${x + 9} ${y} L${x - 6} ${y + 9} Z`);
+                ? `M${x - 6.5} ${y - 6.5} h4.5 v13 h-4.5 Z M${x + 2} ${y - 6.5} h4.5 v13 h-4.5 Z`
+                : `M${x - 4.5} ${y - 7.5} L${x + 8} ${y} L${x - 4.5} ${y + 7.5} Z`);
             document.getElementById('wheelWrap').classList.toggle('looping', Boolean(loop));
         }
 
