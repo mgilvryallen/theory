@@ -2169,7 +2169,7 @@
             const echo = ctx.createDelay(2);
             echo.delayTime.value = beat * 3;
             const drive = ctx.createGain();
-            drive.gain.value = 2.4;
+            drive.gain.value = 1.35;
             const tape = ctx.createWaveShaper();
             const curve = new Float32Array(1024);
             for (let i = 0; i < curve.length; i++) {
@@ -2180,29 +2180,29 @@
             tape.curve = curve;
             tape.oversample = '2x';
             const makeup = ctx.createGain();
-            makeup.gain.value = 1 / 2.1;
+            makeup.gain.value = 1 / 1.3;
             const wear = ctx.createBiquadFilter();
             wear.type = 'lowpass';
-            wear.frequency.value = 2600;
+            wear.frequency.value = 3600;
             wear.Q.value = 0.4;
             const thin = ctx.createBiquadFilter();
             thin.type = 'highpass';
-            thin.frequency.value = 170;
+            thin.frequency.value = 110;
             const feedback = ctx.createGain();
-            feedback.gain.value = 0.42;
+            feedback.gain.value = 0.38;
             const wet = ctx.createGain();
-            wet.gain.value = 0.4;
+            wet.gain.value = 0.38;
             bus.connect(echo).connect(drive).connect(tape).connect(makeup).connect(wear).connect(thin).connect(feedback).connect(echo);
             thin.connect(wet).connect(out);
             // Wow (slow) and flutter (quick): the delay time drifts by a millisecond or two
             const wow = ctx.createOscillator();
             wow.frequency.value = 0.55;
             const wowDepth = ctx.createGain();
-            wowDepth.gain.value = 0.0016;
+            wowDepth.gain.value = 0.0007;
             const flutter = ctx.createOscillator();
             flutter.frequency.value = 5.8;
             const flutterDepth = ctx.createGain();
-            flutterDepth.gain.value = 0.00022;
+            flutterDepth.gain.value = 0.0001;
             wow.connect(wowDepth).connect(echo.delayTime);
             flutter.connect(flutterDepth).connect(echo.delayTime);
             // Hiss, barely there, that the loop carries along with the repeats
@@ -2217,7 +2217,7 @@
             hissTone.frequency.value = 4000;
             hissTone.Q.value = 0.6;
             const hissLevel = ctx.createGain();
-            hissLevel.gain.value = 0.0035;
+            hissLevel.gain.value = 0.00035;
             hiss.connect(hissTone).connect(hissLevel).connect(feedback);
             [wow, flutter, hiss].forEach(node => node.start());
             // Bars of 4/4 in eighth notes, timed off the audio clock so the bars stay even
@@ -2246,11 +2246,16 @@
                     length = pickWeighted([[1, 3], [2, 2]]);
                 } else {
                     // Walk: mostly a step, sometimes a skip or a leap, drawn toward the mode's own notes
-                    const moves = [[-1, 3], [1, 3], [-2, 1.5], [2, 1.5], [3, 0.6], [-3, 0.6], [5, 0.25], [0, 0.4]];
+                    // A gentle pull toward the middle of the first octave: he still takes long trips up
+                    // high, but comes home sooner (about a fifth of his notes above the octave)
+                    const moves = [[-1, 3], [1, 3], [-2, 1.5], [2, 1.5], [3, 0.6], [-3, 0.6], [5, 0.25], [-5, 0.25], [0, 0.4]];
+                    const home = 5;
                     loop.at = pickWeighted(moves.map(([m, w]) => {
                         const to = loop.at + m;
                         if (to < 0 || to >= pan.length) return [to, 0];
-                        return [to, w * (colors.includes(mod12(pan[to])) ? 2.2 : 1)];
+                        const away = Math.abs(to - home) > Math.abs(loop.at - home);
+                        const pull = away ? Math.pow(0.95, Math.max(0, Math.abs(to - home) - 2)) : 1;
+                        return [to, w * pull * (colors.includes(mod12(pan[to])) ? 2.2 : 1)];
                     }));
                     const s = pan[loop.at];
                     const soft = 0.22 + Math.random() * 0.14;
