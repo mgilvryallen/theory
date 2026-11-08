@@ -5,7 +5,6 @@ Music theory you can turn in your hands. Make a scale on a wheel and it tells yo
 **Use it:** https://mgilvryallen.github.io/theory/
 
 - **The wheel:** two rings. Outside, the twelve notes in western music. Inside, the scale degrees. Tap a dot to add a note to your scale or take one out; Drag the whole ring to move to a new key. Tap the middle and it plays the mode freely, like a handpan tuned to it, with an echo behind, until you tap again.
-- **Or as drums:** switch to **drums** and the same two wheels stand on their side, rolling up and down with the 1 in the window, all twelve faces in view as they turn away.
 - **Pick from the list:** tap the key or the scale for the whole list and the wheel whizzes round to it; the arrows step through.
 - **It names what you make:** fifty-odd scales from the seven modes through harmonic and melodic minor and their modes, Phrygian dominant, double harmonic, Hungarian minor, the North Indian thaats, the pentatonics (Chinese and Japanese ones too), blues, whole tone, diminished and bebop. It says which mode of which parent it is, what other scales hide in the same notes, and, for one it can't name, which named scales are a single note away.
 - **Hear it:** play the scale once, or let the middle of the wheel improvise on it (each note pulses as it sounds), tap any note, put a drone under it, or open [Drone](https://github.com/mgilvryallen/drone) in the same key.
