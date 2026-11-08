@@ -1883,12 +1883,21 @@
             if (!drag || drag.ring === 'names') return;
             const { deg } = angleAt(event);
             if (drag.ring === 'needle') {
-                // The needle turns under your finger; the 1 lands on each lit note it passes,
-                // the dots staying put and only their numbers changing
-                drag.moved += 10;
+                // Grab the compass ring anywhere: the needle turns by as far as your finger goes
+                // round, from where it was (it doesn't jump to your finger). The 1 lands on each
+                // lit note the needle passes, the dots staying put and only their numbers changing.
+                let d = deg - drag.last;
+                if (d > 180) d -= 360;
+                if (d < -180) d += 360;
+                drag.last = deg;
+                drag.moved += Math.abs(d);
+                if (drag.moved < 4) return;
+                if (drag.needleFrom === undefined) drag.needleFrom = Number(document.getElementById('needle').dataset.angle);
+                drag.turned = (drag.turned || 0) + d;
+                const aim = drag.needleFrom + drag.turned;
                 needleHeld = true;
-                aimNeedle(deg, false);
-                const pc = slotAt(deg);
+                aimNeedle(aim, false);
+                const pc = slotAt(aim);
                 if (pc !== state.root && state.notes.includes(pc)) moveOneTo(pc);
                 return;
             }
