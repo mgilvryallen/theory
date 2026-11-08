@@ -292,6 +292,16 @@
             cursor: grab;
         }
 
+        #compassTicks {
+            transform-box: view-box;
+            transform-origin: 200px 200px;
+            transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.25, 1);
+        }
+
+        #compassTicks.held {
+            transition: none;
+        }
+
         .minor-ticks {
             transform-box: view-box;
             transform-origin: 200px 200px;
@@ -1907,6 +1917,12 @@
             const turn = setTurns * 30 + drag.moved;
             g.style.transform = `rotate(${turn}deg)`;
             g.querySelectorAll('.deg-dot').forEach(dot => dot.querySelector('text').style.transform = `rotate(${-(Number(dot.dataset.angle) + turn)}deg)`);
+            // The compass turns with the scale: the 1 travels with its dot
+            needleHeld = true;
+            aimNeedle(state.root * 30 + drag.moved, false);
+            const ticks = document.getElementById('compassTicks');
+            ticks.classList.add('held');
+            ticks.style.transform = `rotate(${drag.moved}deg)`;
         });
         wrap.addEventListener('pointerup', event => {
             if (!drag) return;
@@ -1926,8 +1942,16 @@
                 return aimNeedle(state.root * 30, true);
             }
             const turns = Math.round(d.moved / 30);
+            // The compass settles with the ring: its ticks are redrawn for the new key, turned back
+            // by however far the ring still has to settle, then eased home
+            needleHeld = false;
+            const ticks = document.getElementById('compassTicks');
+            ticks.style.transform = `rotate(${d.moved - turns * 30}deg)`;
             if (turns) transpose(turns);
             else renderWheel(false);
+            void ticks.getBoundingClientRect();
+            ticks.classList.remove('held');
+            ticks.style.transform = 'rotate(0deg)';
         });
         wrap.addEventListener('pointercancel', () => {
             drag = null;
