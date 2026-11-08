@@ -240,12 +240,16 @@
             transform-box: view-box;
         }
 
-        .spin.ease, .spin.ease .upright {
+        .spin.ease, .spin.ease .upright, .spin.ease .deg-dot, .spin.ease .deg-dot text {
             transition: transform 0.55s cubic-bezier(0.3, 0.7, 0.25, 1);
         }
 
-        .spin.ease.whizz, .spin.ease.whizz .upright {
+        .spin.ease.whizz, .spin.ease.whizz .upright, .spin.ease.whizz .deg-dot, .spin.ease.whizz .deg-dot text {
             transition-duration: 1.2s;
+        }
+
+        .deg-dot, .deg-dot text {
+            transform-box: view-box;
         }
 
         .upright {
@@ -1292,26 +1296,47 @@
             }
             const ring = document.getElementById('setRing');
             ring.classList.toggle('ease', !instant);
-            ring.innerHTML = '';
             const angle = setTurns * 30;
-            // Drawn as if the scale had never moved, then turned into place; numbers stay upright
+            // The ring is drawn as if the scale had never moved, then turned into place.
+            // Empty spots are redrawn each time; the scale's notes are dots that keep who they
+            // are (the 1, the 2, ...), so a new mode slides each one that changes along the ring
+            // to its new spot. Their numbers stay upright.
+            let empties = document.getElementById('emptySpots');
+            let dots = document.getElementById('degreeDots');
+            if (!empties) {
+                empties = el('g', { id: 'emptySpots' }, ring);
+                dots = el('g', { id: 'degreeDots' }, ring);
+            }
+            empties.innerHTML = '';
             for (let slot = 0; slot < 12; slot++) {
                 const pc = mod12(slot + setTurns);
+                if (pc in degreeOf) continue;
                 const [x, y] = polar(R_SET, slot);
-                const on = pc in degreeOf;
-                const g = el('g', { class: 'slot', 'data-pc': pc }, ring);
-                el('circle', { cx: x, cy: y, r: 24, fill: 'transparent' }, g);
-                if (on) {
-                    const one = pc === state.root;
-                    el('circle', { cx: x, cy: y, r: one ? 21 : 19, fill: one ? '#3d5a42' : '#a0522d', stroke: '#4a3f2f', 'stroke-width': 1 }, g);
-                    const label = el('text', { x, y, class: 'degree upright' + (one ? ' one' : '') }, g);
-                    label.textContent = degreeOf[pc];
-                    label.style.transformOrigin = `${x}px ${y}px`;
-                    label.style.transform = `rotate(${-angle}deg)`;
-                } else {
-                    el('circle', { cx: x, cy: y, r: 6, fill: '#fffdf7', stroke: '#c9bda5', 'stroke-width': 1.2 }, g);
-                }
+                el('circle', { cx: x, cy: y, r: 6, fill: '#fffdf7', stroke: '#c9bda5', 'stroke-width': 1.2 }, empties);
             }
+            // A different number of notes: start the dots afresh rather than slide them
+            if (dots.children.length !== steps.length) dots.innerHTML = '';
+            const [tx, ty] = polar(R_SET, 0);
+            steps.forEach((step, i) => {
+                let dot = dots.children[i];
+                if (!dot) {
+                    dot = el('g', { class: 'deg-dot' }, dots);
+                    el('circle', { cx: tx, cy: ty, r: i === 0 ? 21 : 19, fill: i === 0 ? '#3d5a42' : '#a0522d', stroke: '#4a3f2f', 'stroke-width': 1 }, dot);
+                    const label = el('text', { x: tx, y: ty, class: 'degree' + (i === 0 ? ' one' : '') }, dot);
+                    label.style.transformOrigin = `${tx}px ${ty}px`;
+                }
+                // Its spot on the ring, the short way round from where it was
+                const target = mod12(state.root + step - setTurns) * 30;
+                const was = dot.dataset.angle === undefined ? target : Number(dot.dataset.angle);
+                let delta = ((target - was) % 360 + 540) % 360 - 180;
+                const turn = was + delta;
+                dot.dataset.angle = turn;
+                dot.style.transformOrigin = `${C}px ${C}px`;
+                dot.style.transform = `rotate(${turn}deg)`;
+                const label = dot.querySelector('text');
+                label.textContent = labels[i];
+                label.style.transform = `rotate(${-(turn + angle)}deg)`;
+            });
             ring.style.transform = `rotate(${angle}deg)`;
             const known = SCALE_BY_MASK.get(maskOf(steps));
             document.getElementById('centerName').textContent = spelled[0];
@@ -1432,7 +1457,8 @@
         // ---- Key and scale pickers ----
         // Tap the key or the scale for the whole list; the arrows step through.
         const PICK_GROUPS = [
-            ['Modes of major', ['Major', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Natural Minor', 'Locrian']],
+            // Brightest to darkest, so stepping through changes one note at a time
+            ['Modes of major', ['Lydian', 'Major', 'Mixolydian', 'Dorian', 'Natural Minor', 'Phrygian', 'Locrian']],
             ['Modes of harmonic minor', ['Harmonic Minor', 'Locrian ♮6', 'Ionian ♯5', 'Ukrainian Dorian', 'Phrygian Dominant', 'Lydian ♯2', 'Altered Diminished']],
             ['Modes of melodic minor', ['Melodic Minor', 'Dorian ♭2', 'Lydian Augmented', 'Lydian Dominant', 'Mixolydian ♭6', 'Locrian ♮2', 'Altered']]
         ];
@@ -1543,7 +1569,7 @@
             g.classList.remove('ease');
             const turn = setTurns * 30 + drag.moved;
             g.style.transform = `rotate(${turn}deg)`;
-            g.querySelectorAll('.upright').forEach(t => t.style.transform = `rotate(${-turn}deg)`);
+            g.querySelectorAll('.deg-dot').forEach(dot => dot.querySelector('text').style.transform = `rotate(${-(Number(dot.dataset.angle) + turn)}deg)`);
         });
         wrap.addEventListener('pointerup', () => {
             if (!drag) return;
