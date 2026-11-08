@@ -2176,8 +2176,25 @@
             thin.type = 'highpass';
             thin.frequency.value = 90;
             const feedback = ctx.createGain();
-            feedback.gain.value = 0.42;
+            feedback.gain.value = 0.36;
             bus.connect(echo).connect(wear).connect(thin).connect(feedback).connect(echo);
+            // A long tail: a second, much quieter echo with more feedback, fed from the first.
+            // The first repeats fall away as they did; out past the third, this one takes over
+            // and lets the last of it linger.
+            const tailSend = ctx.createGain();
+            tailSend.gain.value = 0.02;
+            const tail = ctx.createDelay(2);
+            tail.delayTime.value = beat * 3;
+            const tailWear = ctx.createBiquadFilter();
+            tailWear.type = 'lowpass';
+            tailWear.frequency.value = 3400;
+            tailWear.Q.value = 0.4;
+            const tailThin = ctx.createBiquadFilter();
+            tailThin.type = 'highpass';
+            tailThin.frequency.value = 90;
+            const tailFeedback = ctx.createGain();
+            tailFeedback.gain.value = 0.7;
+            thin.connect(tailSend).connect(tail).connect(tailWear).connect(tailThin).connect(tailFeedback).connect(tail);
             const into = ctx.createGain();
             into.gain.value = 0.27;   // half as hard into the tape: a quarter of the grit
             const tape = ctx.createWaveShaper();
@@ -2194,8 +2211,9 @@
             const wet = ctx.createGain();
             wet.gain.value = 1.4;     // back up to the same loudness
             thin.connect(into).connect(tape).connect(dc).connect(wet).connect(out);
+            tailThin.connect(into);
             // Bars of 4/4 in eighth notes, timed off the audio clock so the bars stay even
-            loop = { bus, timer: null, at: 2, pos: 0, start: audio.currentTime + 0.08, echoNodes: [echo, wear, thin, feedback, into, tape, dc, wet] };
+            loop = { bus, timer: null, at: 2, pos: 0, start: audio.currentTime + 0.08, echoNodes: [echo, wear, thin, feedback, into, tape, dc, wet, tailSend, tail, tailWear, tailThin, tailFeedback] };
             const tick = () => {
                 if (!loop) return;
                 const steps = stepsFromRoot();
@@ -2269,7 +2287,7 @@
             loop.bus.gain.linearRampToValueAtTime(0, t + 0.5);
             const bus = loop.bus, echoNodes = loop.echoNodes;
             setTimeout(() => bus.disconnect(), 700);
-            setTimeout(() => echoNodes.forEach(node => node.disconnect()), 6000);
+            setTimeout(() => echoNodes.forEach(node => node.disconnect()), 12000);
             loop = null;
             renderHub();
             renderPlay();
