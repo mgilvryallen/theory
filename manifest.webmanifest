@@ -1,7 +1,7 @@
 {
   "name": "Theory",
   "short_name": "Theory",
-  "description": "Music theory you can turn in your hands: a wheel of scales and modes that names what you make, the modes side by side, chords, the circle of fifths and an ear game.",
+  "description": "Music theory you can turn in your hands. A wheel of scales, modes and chords, the circle of fifths and an ear game.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
