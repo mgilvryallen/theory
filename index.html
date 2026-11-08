@@ -361,6 +361,16 @@
             gap: 10px;
         }
 
+        /* A handpan note's ring, breathing out and in with its echoes */
+        .echo-ring {
+            fill: none;
+            stroke: #b07d2a;
+            stroke-width: 2.5;
+            transform-box: fill-box;
+            transform-origin: center;
+            pointer-events: none;
+        }
+
         /* A pulse on the wheel, where a note is sounding */
         .ring-pulse {
             fill: none;
@@ -1538,6 +1548,28 @@
             }
         }
 
+        // A struck note on the handpan: its ring swells out each time the echo brings it back
+        // and draws in halfway between, fading as the echoes do. at: when it sounds (audio time).
+        const ECHO_REPEATS = 5;
+        function echoRing(pc, at, level) {
+            const svg = document.getElementById('wheel');
+            const [x, y] = polar(R_SET, pc);
+            const ring = el('circle', { cx: x, cy: y, r: 21, class: 'echo-ring' }, svg);
+            const period = 0.27 * 3 * 1000;
+            const frames = [];
+            for (let k = 0; k <= ECHO_REPEATS; k++) {
+                const strength = level * Math.pow(0.42, k);
+                frames.push({ offset: k / (ECHO_REPEATS + 0.5), transform: 'scale(1.55)', opacity: Math.min(1, strength) });
+                frames.push({ offset: (k + 0.5) / (ECHO_REPEATS + 0.5), transform: 'scale(1.05)', opacity: Math.min(1, strength) * 0.45 });
+            }
+            frames.unshift({ offset: 0, transform: 'scale(0.9)', opacity: 0 });
+            frames[1].offset = 0.012;
+            frames.push({ offset: 1, transform: 'scale(1)', opacity: 0 });
+            const delay = Math.max(0, (at - audio.currentTime) * 1000);
+            const anim = ring.animate(frames, { duration: period * (ECHO_REPEATS + 0.5), delay, easing: 'linear', fill: 'both' });
+            anim.onfinish = () => ring.remove();
+        }
+
         // ---- Dragging and holding ----
         function angleAt(event) {
             const box = document.getElementById('wheel').getBoundingClientRect();
@@ -2155,10 +2187,18 @@
         // steps with now and then a leap, in loose phrases with rests between; the low 1
         // (the ding) sounds at the start of a phrase; sometimes two notes at once. Every note
         // is chosen as it comes, so a change on the wheel is heard at once. An echo trails it.
-        function toggleLoop() {
-            if (loop) return stopLoop();
+        async function toggleLoop() {
+            if (loop || loop === false) return stopLoop();
             stopScale();
             const ctx = ensureAudio();
+            // A fresh page's audio starts paused; scheduling before it's running made the first
+            // notes land late and cut each other off. Hold the spot (false) while it wakes.
+            loop = false;
+            renderHub();
+            if (ctx.state !== 'running') {
+                try { await ctx.resume(); } catch (e) {}
+            }
+            if (loop !== false) return;
             const bus = ctx.createGain();
             bus.connect(out);
             const beat = 0.27;   // an eighth note
@@ -2182,9 +2222,11 @@
             // The first repeats fall away as they did; out past the third, this one takes over
             // and lets the last of it linger.
             const tailSend = ctx.createGain();
-            tailSend.gain.value = 0.02;
+            tailSend.gain.value = 0.03;
             const tail = ctx.createDelay(2);
-            tail.delayTime.value = beat * 3;
+            // A hair slower than the first echo (8 ms a repeat), so as the loud one fades the
+            // quiet one slips just out of step with it
+            tail.delayTime.value = beat * 3 + 0.008;
             const tailWear = ctx.createBiquadFilter();
             tailWear.type = 'lowpass';
             tailWear.frequency.value = 3400;
@@ -2193,7 +2235,7 @@
             tailThin.type = 'highpass';
             tailThin.frequency.value = 90;
             const tailFeedback = ctx.createGain();
-            tailFeedback.gain.value = 0.7;
+            tailFeedback.gain.value = 0.66;
             thin.connect(tailSend).connect(tail).connect(tailWear).connect(tailThin).connect(tailFeedback).connect(tail);
             const into = ctx.createGain();
             into.gain.value = 0.27;   // half as hard into the tape: a quarter of the grit
@@ -2213,7 +2255,7 @@
             thin.connect(into).connect(tape).connect(dc).connect(wet).connect(out);
             tailThin.connect(into);
             // Bars of 4/4 in eighth notes, timed off the audio clock so the bars stay even
-            loop = { bus, timer: null, at: 2, pos: 0, start: audio.currentTime + 0.08, echoNodes: [echo, wear, thin, feedback, into, tape, dc, wet, tailSend, tail, tailWear, tailThin, tailFeedback] };
+            loop = { bus, timer: null, at: 2, pos: 0, start: audio.currentTime + 0.12, echoNodes: [echo, wear, thin, feedback, into, tape, dc, wet, tailSend, tail, tailWear, tailThin, tailFeedback] };
             const tick = () => {
                 if (!loop) return;
                 const steps = stepsFromRoot();
@@ -2229,7 +2271,7 @@
                     const r = Math.random();
                     const octave = r < 0.7 ? -12 : r < 0.9 ? 0 : 12;
                     panTone(freqOf(state.root + octave), t, octave < 0 ? 0.5 : 0.3, bus);
-                    pulse(state.root);
+                    echoRing(state.root, t, octave < 0 ? 1 : 0.75);
                     // The melody picks up again near the bottom or the middle of the pan
                     if (Math.random() < 0.35) loop.at = Math.min(pan.length - 1, Math.floor(Math.random() * 5));
                     length = pickWeighted([[1, 3], [2, 3]]);
@@ -2252,7 +2294,7 @@
                     const s = pan[loop.at];
                     const soft = 0.22 + Math.random() * 0.14;
                     panTone(freqOf(state.root + s), t, soft, bus);
-                    pulse(mod12(state.root + s));
+                    echoRing(mod12(state.root + s), t, 0.55 + soft);
                     // Now and then a second note with it, a third or so below
                     if (Math.random() < 0.14 && loop.at >= 2) panTone(freqOf(state.root + pan[loop.at - 2]), t + 0.012, soft * 0.7, bus);
                     // Mostly eighths, some quarters, a few quick sixteenths
@@ -2279,6 +2321,12 @@
         }
 
         function stopLoop() {
+            if (loop === false) {
+                loop = null;
+                renderHub();
+                renderPlay();
+                return;
+            }
             if (!loop) return;
             clearTimeout(loop.timer);
             const t = audio.currentTime;
