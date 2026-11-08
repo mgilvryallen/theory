@@ -1867,23 +1867,39 @@
             // The compass is easy to catch: from just outside the play button to the dots' edge
             const onNeedle = r > R_HUB && r < R_COMPASS + 5;
             const ring = onNeedle ? 'needle' : r > R_NAMES - 20 ? 'names' : r <= R_HUB ? 'hub' : 'set';
-            drag = { ring, last: deg, moved: 0, pc: slotAt(deg), onNote: ring === 'set' && Math.abs(r - R_SET) < 30 };
+            // x0, y0, travel: how far the pointer itself has gone, in screen pixels. Past a few
+            // pixels it's a drag, and letting go never counts as a tap.
+            drag = { ring, last: deg, moved: 0, pc: slotAt(deg), onNote: ring === 'set' && Math.abs(r - R_SET) < 30, x0: event.clientX, y0: event.clientY, travel: 0 };
             wrap.setPointerCapture(event.pointerId);
             wrap.style.cursor = cursorAt(event);
         });
         // The whole inside turns, from the ring or the middle; a tap in the middle plays
-        // The cursor is the usual arrow, except over the two rings you can drag (the compass
-        // ring and the scale ring, dots and all): an open hand, closed while dragging
+        // The cursor says what you can do: a pointer over what you can tap (the middle, a dot,
+        // a note name), an open hand over what you can drag (the compass ring, the wood of the
+        // scale ring), closed while dragging
         function cursorAt(event) {
             if (drag) return drag.ring === 'needle' || drag.ring === 'set' ? 'grabbing' : '';
             const box = document.getElementById('wheel').getBoundingClientRect();
             const x = (event.clientX - box.left) / box.width * 400;
             const y = (event.clientY - box.top) / box.height * 400;
             const r = Math.hypot(x - C, y - C);
-            return r > R_HUB && r < R_NAMES - 20 ? 'grab' : '';
+            const near = (radius, reach) => {
+                for (let slot = 0; slot < 12; slot++) {
+                    const [sx, sy] = polar(radius, slot);
+                    if (Math.hypot(x - sx, y - sy) < reach) return true;
+                }
+                return false;
+            };
+            if (r <= R_HUB) return 'pointer';                       // the whole middle plays
+            if (r < R_COMPASS + 5) return 'grab';                    // the compass ring
+            if (r < R_NAMES - 20) return near(R_SET, 21) ? 'pointer' : 'grab';   // a dot, or the wood
+            if (r <= 197) return near(R_NAMES, 17) ? 'pointer' : '';            // a note name
+            return '';
         }
 
+
         wrap.addEventListener('pointermove', event => {
+            if (drag) drag.travel = Math.max(drag.travel, Math.hypot(event.clientX - drag.x0, event.clientY - drag.y0));
             wrap.style.cursor = cursorAt(event);
             if (!drag || drag.ring === 'names') return;
             const { deg } = angleAt(event);
@@ -1929,7 +1945,7 @@
             const d = drag;
             drag = null;
             wrap.style.cursor = cursorAt(event);
-            if (Math.abs(d.moved) < 6) {
+            if (d.travel < 8) {
                 if (d.ring === 'names') playNote(d.pc);
                 else if (d.ring === 'hub') togglePlay();
                 else if (d.ring === 'needle') { /* the needle only ever turns */ }
