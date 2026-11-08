@@ -283,7 +283,6 @@
 
         .hub {
             fill: transparent;
-            cursor: pointer;
         }
 
         .needle {
@@ -1853,9 +1852,34 @@
             const ring = onNeedle ? 'needle' : r > R_NAMES - 20 ? 'names' : r <= 50 ? 'hub' : 'set';
             drag = { ring, last: deg, moved: 0, pc: slotAt(deg), onNote: ring === 'set' && Math.abs(r - R_SET) < 30 };
             wrap.setPointerCapture(event.pointerId);
+            wrap.style.cursor = cursorAt(event);
         });
         // The whole inside turns, from the ring or the middle; a tap in the middle plays
+        // The cursor says what's under it: a hand on anything you can drag (the compass ring, the
+        // bare wood of the middle ring), a pointer on anything you can tap (a dot, a note name,
+        // the play button), a closed hand while dragging
+        function cursorAt(event) {
+            if (drag) return drag.ring === 'names' || drag.ring === 'hub' ? 'pointer' : 'grabbing';
+            const box = document.getElementById('wheel').getBoundingClientRect();
+            const x = (event.clientX - box.left) / box.width * 400;
+            const y = (event.clientY - box.top) / box.height * 400;
+            const r = Math.hypot(x - C, y - C);
+            const near = (radius, reach) => {
+                for (let slot = 0; slot < 12; slot++) {
+                    const [sx, sy] = polar(radius, slot);
+                    if (Math.hypot(x - sx, y - sy) < reach) return true;
+                }
+                return false;
+            };
+            if (r > 197) return '';
+            if (r > R_NAMES - 20) return near(R_NAMES, 17) ? 'pointer' : '';
+            if (r > 50 && r < R_COMPASS + 5) return 'grab';
+            if (r <= 50) return Math.hypot(x - C, y - (C + 32)) < 18 ? 'pointer' : '';
+            return near(R_SET, 22) ? 'pointer' : 'grab';
+        }
+
         wrap.addEventListener('pointermove', event => {
+            wrap.style.cursor = cursorAt(event);
             if (!drag || drag.ring === 'names') return;
             const { deg } = angleAt(event);
             if (drag.ring === 'needle') {
@@ -1880,10 +1904,11 @@
             g.style.transform = `rotate(${turn}deg)`;
             g.querySelectorAll('.deg-dot').forEach(dot => dot.querySelector('text').style.transform = `rotate(${-(Number(dot.dataset.angle) + turn)}deg)`);
         });
-        wrap.addEventListener('pointerup', () => {
+        wrap.addEventListener('pointerup', event => {
             if (!drag) return;
             const d = drag;
             drag = null;
+            wrap.style.cursor = cursorAt(event);
             if (Math.abs(d.moved) < 6) {
                 if (d.ring === 'names') playNote(d.pc);
                 else if (d.ring === 'hub') togglePlay();
