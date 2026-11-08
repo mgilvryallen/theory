@@ -1121,7 +1121,6 @@
                 <p><b>Outside ring:</b> The twelve notes in western music.</p>
                 <p><b>Inside ring:</b> The scale degrees. Tap a dot to add a note to your scale or take one out, and drag the ring to move your scale to a new key.</p>
                 <p><b>Compass ring:</b> Where the <b class="num">1</b> is. Drag the needle to move the <b class="num">1</b> to another dot in your scale.</p>
-                <p><b>Center:</b> A generative handpan-style ambient music player, to set the mood of the mode.</p>
             </div>
 
             <div class="wheel-wrap" id="wheelWrap">
@@ -1133,7 +1132,7 @@
             <div class="play-row" id="playRow">
                 <button class="btn quiet" id="panBtn" onclick="toggleLoop()">handpan</button>
                 <button class="btn quiet" id="droneBtn" onclick="toggleDrone()">drone</button>
-                <button class="btn quiet" onclick="setScale(state.root, MAJOR, true, true)">back to major</button>
+                <button class="btn quiet" onclick="setScale(0, MAJOR, true, true)">reset</button>
             </div>
 
             <div class="name-box" id="nameBox"></div>
@@ -1202,11 +1201,6 @@
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="card" style="--accent: var(--tan)">
-            <h2>Practice It</h2>
-            <p class="hint">Play your scale against a drone: <a id="droneLink" href="../drone/">open Drone in <span id="droneKey">C</span></a>. Sit on each note of the scale over the drone and listen to how it leans: the 1 and 5 rest, the 4 wants down, the 7 wants up.</p>
         </div>
 
         <!-- While the handpan or drone plays and their buttons are scrolled away, this follows -->
@@ -1629,8 +1623,6 @@
             renderFifths();
             const key = rootName();
             if (document.getElementById('floatBar')) renderFloat();
-            document.getElementById('droneKey').textContent = key;
-            document.getElementById('droneLink').href = `../drone/#key=${encodeURIComponent(DRONE_KEYS[state.root])}`;
             if (droneNodes) moveDrone();
         }
 
