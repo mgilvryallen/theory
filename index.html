@@ -2162,66 +2162,40 @@
             const bus = ctx.createGain();
             bus.connect(out);
             const beat = 0.27;   // an eighth note
-            // A tape echo. Every repeat goes back through the loop: the tape's gentle
-            // saturation, a little more top lost, a little bottom thinned, the motor's slow wow
-            // and quick flutter wavering the pitch, and a trace of hiss riding along. So each
-            // echo comes back a bit darker, softer-edged and more worn than the last.
+            // The echo. Inside the loop, each repeat only gets a little duller and thinner, the
+            // way repeats fade. The tape's colour (a light, slightly lopsided saturation) is
+            // added once, on the way out, so every repeat has the colour the first one has
+            // rather than piling it up. Kept quiet going in so it can never clip.
             const echo = ctx.createDelay(2);
             echo.delayTime.value = beat * 3;
-            const drive = ctx.createGain();
-            drive.gain.value = 1.35;
+            const wear = ctx.createBiquadFilter();
+            wear.type = 'lowpass';
+            wear.frequency.value = 3400;
+            wear.Q.value = 0.4;
+            const thin = ctx.createBiquadFilter();
+            thin.type = 'highpass';
+            thin.frequency.value = 90;
+            const feedback = ctx.createGain();
+            feedback.gain.value = 0.36;
+            bus.connect(echo).connect(wear).connect(thin).connect(feedback).connect(echo);
+            const into = ctx.createGain();
+            into.gain.value = 0.55;
             const tape = ctx.createWaveShaper();
             const curve = new Float32Array(1024);
             for (let i = 0; i < curve.length; i++) {
                 const x = i / (curve.length - 1) * 2 - 1;
-                // tanh, a hair lopsided: tape squashes its peaks a little unevenly
-                curve[i] = Math.tanh(x + 0.08 * x * x) - Math.tanh(0) - 0.02 * x * x;
+                curve[i] = Math.tanh(1.2 * x + 0.05 * x * x) / Math.tanh(1.2);
             }
             tape.curve = curve;
             tape.oversample = '2x';
-            const makeup = ctx.createGain();
-            makeup.gain.value = 1 / 1.3;
-            const wear = ctx.createBiquadFilter();
-            wear.type = 'lowpass';
-            wear.frequency.value = 3600;
-            wear.Q.value = 0.4;
-            const thin = ctx.createBiquadFilter();
-            thin.type = 'highpass';
-            thin.frequency.value = 110;
-            const feedback = ctx.createGain();
-            feedback.gain.value = 0.38;
+            const dc = ctx.createBiquadFilter();
+            dc.type = 'highpass';
+            dc.frequency.value = 30;
             const wet = ctx.createGain();
-            wet.gain.value = 0.38;
-            bus.connect(echo).connect(drive).connect(tape).connect(makeup).connect(wear).connect(thin).connect(feedback).connect(echo);
-            thin.connect(wet).connect(out);
-            // Wow (slow) and flutter (quick): the delay time drifts by a millisecond or two
-            const wow = ctx.createOscillator();
-            wow.frequency.value = 0.55;
-            const wowDepth = ctx.createGain();
-            wowDepth.gain.value = 0.0007;
-            const flutter = ctx.createOscillator();
-            flutter.frequency.value = 5.8;
-            const flutterDepth = ctx.createGain();
-            flutterDepth.gain.value = 0.0001;
-            wow.connect(wowDepth).connect(echo.delayTime);
-            flutter.connect(flutterDepth).connect(echo.delayTime);
-            // Hiss, barely there, that the loop carries along with the repeats
-            const hissBuffer = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
-            const hissData = hissBuffer.getChannelData(0);
-            for (let i = 0; i < hissData.length; i++) hissData[i] = Math.random() * 2 - 1;
-            const hiss = ctx.createBufferSource();
-            hiss.buffer = hissBuffer;
-            hiss.loop = true;
-            const hissTone = ctx.createBiquadFilter();
-            hissTone.type = 'bandpass';
-            hissTone.frequency.value = 4000;
-            hissTone.Q.value = 0.6;
-            const hissLevel = ctx.createGain();
-            hissLevel.gain.value = 0.00035;
-            hiss.connect(hissTone).connect(hissLevel).connect(feedback);
-            [wow, flutter, hiss].forEach(node => node.start());
+            wet.gain.value = 0.38 / 0.55;
+            thin.connect(into).connect(tape).connect(dc).connect(wet).connect(out);
             // Bars of 4/4 in eighth notes, timed off the audio clock so the bars stay even
-            loop = { bus, timer: null, at: 2, pos: 0, start: audio.currentTime + 0.08, echoNodes: [echo, drive, tape, makeup, wear, thin, feedback, wet, wowDepth, flutterDepth, hissTone, hissLevel], tapeMotors: [wow, flutter, hiss] };
+            loop = { bus, timer: null, at: 2, pos: 0, start: audio.currentTime + 0.08, echoNodes: [echo, wear, thin, feedback, into, tape, dc, wet] };
             const tick = () => {
                 if (!loop) return;
                 const steps = stepsFromRoot();
@@ -2293,12 +2267,9 @@
             loop.bus.gain.setValueAtTime(loop.bus.gain.value, t);
             // The struck notes fade quickly; the echo is left to die away on its own
             loop.bus.gain.linearRampToValueAtTime(0, t + 0.5);
-            const bus = loop.bus, echoNodes = loop.echoNodes, motors = loop.tapeMotors;
+            const bus = loop.bus, echoNodes = loop.echoNodes;
             setTimeout(() => bus.disconnect(), 700);
-            setTimeout(() => {
-                motors.forEach(node => node.stop());
-                echoNodes.forEach(node => node.disconnect());
-            }, 6000);
+            setTimeout(() => echoNodes.forEach(node => node.disconnect()), 6000);
             loop = null;
             renderHub();
             renderPlay();
