@@ -2179,12 +2179,12 @@
             feedback.gain.value = 0.36;
             bus.connect(echo).connect(wear).connect(thin).connect(feedback).connect(echo);
             const into = ctx.createGain();
-            into.gain.value = 0.55;
+            into.gain.value = 0.27;   // half as hard into the tape: a quarter of the grit
             const tape = ctx.createWaveShaper();
             const curve = new Float32Array(1024);
             for (let i = 0; i < curve.length; i++) {
                 const x = i / (curve.length - 1) * 2 - 1;
-                curve[i] = Math.tanh(1.2 * x + 0.05 * x * x) / Math.tanh(1.2);
+                curve[i] = Math.tanh(1.2 * x + 0.025 * x * x) / Math.tanh(1.2);
             }
             tape.curve = curve;
             tape.oversample = '2x';
@@ -2192,7 +2192,7 @@
             dc.type = 'highpass';
             dc.frequency.value = 30;
             const wet = ctx.createGain();
-            wet.gain.value = 0.38 / 0.55;
+            wet.gain.value = 1.4;     // back up to the same loudness
             thin.connect(into).connect(tape).connect(dc).connect(wet).connect(out);
             // Bars of 4/4 in eighth notes, timed off the audio clock so the bars stay even
             loop = { bus, timer: null, at: 2, pos: 0, start: audio.currentTime + 0.08, echoNodes: [echo, wear, thin, feedback, into, tape, dc, wet] };
