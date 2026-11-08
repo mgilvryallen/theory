@@ -332,9 +332,13 @@
             stroke-linecap: round;
         }
 
-        .hub-icon {
+        .hub-btn {
             fill: var(--woad);
-            opacity: 0.2;
+            pointer-events: none;
+        }
+
+        .hub-icon {
+            fill: var(--parchment);
             pointer-events: none;
         }
 
@@ -1489,11 +1493,11 @@
             // A gold diamond spanning the band, its longer half pointing out at the 1
             const top = C - R_COMPASS + 1, mid = C - R_COMPASS + 11, tail = C - R_HUB - 5, half = 6;
             el('path', { d: `M${C} ${top} L${C + half} ${mid} L${C} ${tail} L${C - half} ${mid} Z`, class: 'needle-point' }, needle);
-            // The whole middle is the play button: its play or pause sign sits large and pale
-            // behind the key and the scale's name
+            el('text', { x: C, y: C - 22, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 22px; fill: #a0522d' }, svg);
+            el('text', { x: C, y: C - 1, class: 'note-name', id: 'centerSub', style: 'font-size: 11px; fill: #6b5d4f' }, svg);
+            // Play and pause, under the name: a round blue button (a tap anywhere in the middle works)
+            el('circle', { cx: C, cy: C + 26, r: 15, class: 'hub-btn' }, svg);
             el('path', { id: 'hubIcon', class: 'hub-icon', d: '' }, svg);
-            el('text', { x: C, y: C - 7, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 24px; fill: #a0522d' }, svg);
-            el('text', { x: C, y: C + 15, class: 'note-name', id: 'centerSub', style: 'font-size: 11px; fill: #4a3f2f' }, svg);
             renderWheel(true);
         }
 
@@ -1588,7 +1592,7 @@
             sub.textContent = known ? known.name.toLowerCase() : `${steps.length} notes`;
             sub.style.fontSize = '11px';
             try {
-                const room = 2 * Math.sqrt(R_HUB * R_HUB - 15 * 15) - 10;
+                const room = 2 * Math.sqrt(R_HUB * R_HUB - 1) - 10;
                 const width = sub.getComputedTextLength();
                 if (width > room) sub.style.fontSize = (11 * room / width).toFixed(1) + 'px';
             } catch (e) {}
@@ -2403,10 +2407,10 @@
         function renderHub() {
             const icon = document.getElementById('hubIcon');
             if (!icon) return;
-            const x = C, y = C;
+            const x = C, y = C + 26;
             icon.setAttribute('d', run
-                ? `M${x - 17} ${y - 21} h12 v42 h-12 Z M${x + 5} ${y - 21} h12 v42 h-12 Z`
-                : `M${x - 14} ${y - 25} L${x + 26} ${y} L${x - 14} ${y + 25} Z`);
+                ? `M${x - 6} ${y - 6} h4.2 v12 h-4.2 Z M${x + 1.8} ${y - 6} h4.2 v12 h-4.2 Z`
+                : `M${x - 4} ${y - 7} L${x + 7.5} ${y} L${x - 4} ${y + 7} Z`);
             document.getElementById('hub').setAttribute('aria-label', run ? 'Pause' : 'Play the scale');
         }
 
