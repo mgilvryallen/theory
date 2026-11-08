@@ -275,14 +275,44 @@
         }
 
         .needle {
-            fill: var(--green);
-            stroke: var(--paper);
-            stroke-width: 1.5;
-            stroke-linejoin: round;
             transform-box: view-box;
             transform-origin: 200px 200px;
             transition: transform 0.35s cubic-bezier(0.3, 0.7, 0.25, 1);
             cursor: grab;
+        }
+
+        .needle.held {
+            transition: none;
+            cursor: grabbing;
+        }
+
+        .needle-point {
+            fill: var(--ochre);
+            stroke: var(--heading);
+            stroke-width: 0.8;
+            stroke-linejoin: round;
+        }
+
+        .needle-tail {
+            fill: var(--heading);
+            stroke: var(--heading);
+            stroke-width: 0.8;
+            stroke-linejoin: round;
+        }
+
+        .needle-pin {
+            fill: var(--paper);
+        }
+
+        .compass-tick {
+            stroke: var(--light-tan);
+            stroke-width: 1.2;
+            stroke-linecap: round;
+        }
+
+        .compass-tick.lit {
+            stroke: var(--tan);
+            stroke-width: 1.6;
         }
 
         .hub-icon {
@@ -1293,8 +1323,15 @@
             }
             el('g', { id: 'setRing', class: 'spin' }, svg);
             el('circle', { cx: C, cy: C, r: R_HUB - 1, id: 'hub', class: 'hub' }, svg);
-            // The needle: points at the 1. Drag it round to make another lit note the 1.
-            el('path', { id: 'needle', class: 'needle', d: `M${C} ${C - R_HUB + 3} L${C + 9} ${C - R_HUB + 19} L${C - 9} ${C - R_HUB + 19} Z` }, svg);
+            // The compass: twelve ticks round the edge of the middle (longer where your notes are)
+            // and a needle pointing at the 1. Drag the needle round to make another note the 1.
+            const ticks = el('g', { id: 'compassTicks' }, svg);
+            for (let pc = 0; pc < 12; pc++) el('line', { id: 'tick' + pc, class: 'compass-tick' }, ticks);
+            const needle = el('g', { id: 'needle', class: 'needle' }, svg);
+            const top = C - R_HUB + 3, mid = C - R_HUB + 20, tail = C - R_HUB + 40, half = 7.5;
+            el('path', { d: `M${C} ${top} L${C + half} ${mid} L${C - half} ${mid} Z`, class: 'needle-point' }, needle);
+            el('path', { d: `M${C - half} ${mid} L${C + half} ${mid} L${C} ${tail} Z`, class: 'needle-tail' }, needle);
+            el('circle', { cx: C, cy: mid, r: 2, class: 'needle-pin' }, needle);
             el('text', { x: C, y: C - 20, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 26px; fill: #a0522d' }, svg);
             el('text', { x: C, y: C + 4, class: 'note-name', id: 'centerSub', style: 'font-size: 12px; fill: #6b5d4f' }, svg);
             // Play and pause, under the name: the scale round and round
@@ -1375,13 +1412,18 @@
             // Keep them in degree order, so the next change of notes slides the right ones
             ordered.forEach(dot => dots.appendChild(dot));
             ring.style.transform = `rotate(${angle}deg)`;
-            // The needle in the middle points at the 1, the short way round
-            const needle = document.getElementById('needle');
-            const aim = state.root * 30;
-            const had = needle.dataset.angle === undefined ? aim : Number(needle.dataset.angle);
-            const swing = had + (((aim - had) % 360 + 540) % 360 - 180);
-            needle.dataset.angle = swing;
-            needle.style.transform = `rotate(${swing}deg)`;
+            // The compass ticks: every semitone, longer and darker under your scale's notes
+            for (let pc = 0; pc < 12; pc++) {
+                const lit = pcs.includes(pc);
+                const [x1, y1] = polar(R_HUB - 4, pc);
+                const [x2, y2] = polar(R_HUB - (lit ? 13 : 8), pc);
+                const tick = document.getElementById('tick' + pc);
+                tick.setAttribute('x1', x1); tick.setAttribute('y1', y1);
+                tick.setAttribute('x2', x2); tick.setAttribute('y2', y2);
+                tick.setAttribute('class', 'compass-tick' + (lit ? ' lit' : ''));
+            }
+            // The needle points at the 1, the short way round (unless it's in your hand)
+            if (!needleHeld) aimNeedle(state.root * 30, true);
             const known = SCALE_BY_MASK.get(maskOf(steps));
             document.getElementById('centerName').textContent = spelled[0];
             document.getElementById('centerSub').textContent = known ? known.name.toLowerCase() : `${steps.length} notes`;
@@ -1617,6 +1659,17 @@
             anim.onfinish = () => ring.remove();
         }
 
+        // The needle's angle, unwound so it always turns the short way
+        let needleHeld = false;
+        function aimNeedle(deg, ease) {
+            const needle = document.getElementById('needle');
+            const had = needle.dataset.angle === undefined ? deg : Number(needle.dataset.angle);
+            const swing = had + (((deg - had) % 360 + 540) % 360 - 180);
+            needle.dataset.angle = swing;
+            needle.classList.toggle('held', !ease);
+            needle.style.transform = `rotate(${swing}deg)`;
+        }
+
         // ---- Dragging and holding ----
         function angleAt(event) {
             const box = document.getElementById('wheel').getBoundingClientRect();
@@ -1632,7 +1685,7 @@
             if (r > 197) return;
             // The needle: near the centre's edge, pointing at the 1
             const toOne = Math.abs(((deg - state.root * 30) % 360 + 540) % 360 - 180);
-            const onNeedle = r > R_HUB - 32 && r < R_HUB + 6 && toOne < 24;
+            const onNeedle = r > R_HUB - 42 && r < R_HUB + 6 && toOne < 24;
             const ring = onNeedle ? 'needle' : r > R_NAMES - 20 ? 'names' : r < R_HUB ? 'hub' : 'set';
             drag = { ring, last: deg, moved: 0, pc: slotAt(deg), onNote: ring === 'set' && Math.abs(r - R_SET) < 30 };
             wrap.setPointerCapture(event.pointerId);
@@ -1642,9 +1695,11 @@
             if (!drag || drag.ring === 'names') return;
             const { deg } = angleAt(event);
             if (drag.ring === 'needle') {
-                // The 1 follows the needle, landing on whichever lit note it points at; the dots
-                // stay put and only their numbers change
+                // The needle turns under your finger; the 1 lands on each lit note it passes,
+                // the dots staying put and only their numbers changing
                 drag.moved += 10;
+                needleHeld = true;
+                aimNeedle(deg, false);
                 const pc = slotAt(deg);
                 if (pc !== state.root && state.notes.includes(pc)) moveOneTo(pc);
                 return;
@@ -1671,14 +1726,18 @@
                 else if (d.onNote) toggleNote(d.pc);
                 return;
             }
-            // The needle has already moved the 1 as it went; letting go turns nothing
-            if (d.ring === 'needle') return renderWheel(false);
+            // The needle has already moved the 1 as it went; letting go settles it onto the 1
+            if (d.ring === 'needle') {
+                needleHeld = false;
+                return aimNeedle(state.root * 30, true);
+            }
             const turns = Math.round(d.moved / 30);
             if (turns) transpose(turns);
             else renderWheel(false);
         });
         wrap.addEventListener('pointercancel', () => {
             drag = null;
+            needleHeld = false;
             renderWheel(false);
         });
 
