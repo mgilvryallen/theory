@@ -274,6 +274,17 @@
             cursor: pointer;
         }
 
+        .needle {
+            fill: var(--green);
+            stroke: var(--paper);
+            stroke-width: 1.5;
+            stroke-linejoin: round;
+            transform-box: view-box;
+            transform-origin: 200px 200px;
+            transition: transform 0.35s cubic-bezier(0.3, 0.7, 0.25, 1);
+            cursor: grab;
+        }
+
         .hub-icon {
             fill: var(--green);
             pointer-events: none;
@@ -934,7 +945,7 @@
         <!-- The wheel -->
         <div class="card" style="--accent: var(--rust)">
             <h2>The Wheel</h2>
-            <p class="hint" id="wheelHint"><b>Outside ring:</b> the twelve notes in western music. <b>Inside ring:</b> scale degrees. Tap a dot to add a note to your scale or take one out. Drag the whole ring to move to a new key. Tap the middle to hear the mode played freely, like a handpan tuned to it.</p>
+            <p class="hint" id="wheelHint"><b>Outside ring:</b> the twelve notes in western music. <b>Inside ring:</b> scale degrees. Tap a dot to add a note to your scale or take one out. Drag the whole ring to move to a new key. Drag the needle in the middle to move the <b class="num">1</b> to another dot: same notes, new mode. Tap the middle to hear the mode played freely, like a handpan tuned to it.</p>
 
             <div class="wheel-wrap" id="wheelWrap">
                 <svg id="wheel" viewBox="0 0 400 400" role="img" aria-label="Scale wheel"></svg>
@@ -945,7 +956,7 @@
             <div class="play-row">
                 <button class="btn icon" id="playBtn" onclick="togglePlay()" aria-label="Play"></button>
                 <button class="btn quiet" id="droneBtn" onclick="toggleDrone()">drone</button>
-                <button class="btn quiet" onclick="setScale(state.root, MAJOR, true)">back to major</button>
+                <button class="btn quiet" onclick="setScale(state.root, MAJOR, true, true)">back to major</button>
             </div>
 
             <div class="name-box" id="nameBox"></div>
@@ -1282,6 +1293,8 @@
             }
             el('g', { id: 'setRing', class: 'spin' }, svg);
             el('circle', { cx: C, cy: C, r: R_HUB - 1, id: 'hub', class: 'hub' }, svg);
+            // The needle: points at the 1. Drag it round to make another lit note the 1.
+            el('path', { id: 'needle', class: 'needle', d: `M${C} ${C - R_HUB + 3} L${C + 9} ${C - R_HUB + 19} L${C - 9} ${C - R_HUB + 19} Z` }, svg);
             el('text', { x: C, y: C - 20, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 26px; fill: #a0522d' }, svg);
             el('text', { x: C, y: C + 4, class: 'note-name', id: 'centerSub', style: 'font-size: 12px; fill: #6b5d4f' }, svg);
             // Play and pause, under the name: the scale round and round
@@ -1324,17 +1337,28 @@
                 const [x, y] = polar(R_SET, slot);
                 el('circle', { cx: x, cy: y, r: 6, fill: '#fffdf7', stroke: '#c9bda5', 'stroke-width': 1.2 }, empties);
             }
-            // A different number of notes: start the dots afresh rather than slide them
-            if (dots.children.length !== steps.length) dots.innerHTML = '';
+            // Same notes with a new 1: every dot stays where it is and just takes its new number.
+            // New notes: each dot keeps its degree and slides to where that degree now is. A
+            // different number of notes: the dots start afresh.
+            const pcs = steps.map(step => mod12(state.root + step));
+            const before = [...dots.children];
+            const sameNotes = before.length === pcs.length && before.every(dot => pcs.includes(Number(dot.dataset.pc)));
+            if (!sameNotes && before.length !== steps.length) dots.innerHTML = '';
             const [tx, ty] = polar(R_SET, 0);
-            steps.forEach((step, i) => {
-                let dot = dots.children[i];
+            const ordered = steps.map((step, i) => {
+                let dot = sameNotes ? before.find(d => Number(d.dataset.pc) === pcs[i]) : dots.children[i];
                 if (!dot) {
                     dot = el('g', { class: 'deg-dot' }, dots);
-                    el('circle', { cx: tx, cy: ty, r: i === 0 ? 21 : 19, fill: i === 0 ? '#3d5a42' : '#a0522d', stroke: '#4a3f2f', 'stroke-width': 1 }, dot);
-                    const label = el('text', { x: tx, y: ty, class: 'degree' + (i === 0 ? ' one' : '') }, dot);
+                    el('circle', { cx: tx, cy: ty, r: 19, stroke: '#4a3f2f', 'stroke-width': 1 }, dot);
+                    const label = el('text', { x: tx, y: ty, class: 'degree' }, dot);
                     label.style.transformOrigin = `${tx}px ${ty}px`;
                 }
+                dot.dataset.pc = pcs[i];
+                const one = i === 0;
+                const disc = dot.querySelector('circle');
+                disc.setAttribute('r', one ? 21 : 19);
+                disc.setAttribute('fill', one ? '#3d5a42' : '#a0522d');
+                dot.querySelector('text').setAttribute('class', 'degree' + (one ? ' one' : ''));
                 // Its spot on the ring, the short way round from where it was
                 const target = mod12(state.root + step - setTurns) * 30;
                 const was = dot.dataset.angle === undefined ? target : Number(dot.dataset.angle);
@@ -1346,8 +1370,18 @@
                 const label = dot.querySelector('text');
                 label.textContent = labels[i];
                 label.style.transform = `rotate(${-(turn + angle)}deg)`;
+                return dot;
             });
+            // Keep them in degree order, so the next change of notes slides the right ones
+            ordered.forEach(dot => dots.appendChild(dot));
             ring.style.transform = `rotate(${angle}deg)`;
+            // The needle in the middle points at the 1, the short way round
+            const needle = document.getElementById('needle');
+            const aim = state.root * 30;
+            const had = needle.dataset.angle === undefined ? aim : Number(needle.dataset.angle);
+            const swing = had + (((aim - had) % 360 + 540) % 360 - 180);
+            needle.dataset.angle = swing;
+            needle.style.transform = `rotate(${swing}deg)`;
             const known = SCALE_BY_MASK.get(maskOf(steps));
             document.getElementById('centerName').textContent = spelled[0];
             document.getElementById('centerSub').textContent = known ? known.name.toLowerCase() : `${steps.length} notes`;
@@ -1528,7 +1562,9 @@
         function pickScale(i) {
             const scale = SCALES[i];
             if (!scale) return;
-            if (maskOf(stepsFromRoot()) !== maskOf(scale.steps)) setScale(state.root, scale.steps, true, true);
+            // Same number of notes: the dots that change slide over. A different size has no such
+            // path, so the wheel takes its spin instead.
+            if (maskOf(stepsFromRoot()) !== maskOf(scale.steps)) setScale(state.root, scale.steps, true, scale.steps.length !== state.notes.length);
             playScale();
         }
 
@@ -1594,7 +1630,10 @@
         wrap.addEventListener('pointerdown', event => {
             const { deg, r } = angleAt(event);
             if (r > 197) return;
-            const ring = r > R_NAMES - 20 ? 'names' : r < R_HUB ? 'hub' : 'set';
+            // The needle: near the centre's edge, pointing at the 1
+            const toOne = Math.abs(((deg - state.root * 30) % 360 + 540) % 360 - 180);
+            const onNeedle = r > R_HUB - 32 && r < R_HUB + 6 && toOne < 24;
+            const ring = onNeedle ? 'needle' : r > R_NAMES - 20 ? 'names' : r < R_HUB ? 'hub' : 'set';
             drag = { ring, last: deg, moved: 0, pc: slotAt(deg), onNote: ring === 'set' && Math.abs(r - R_SET) < 30 };
             wrap.setPointerCapture(event.pointerId);
         });
@@ -1602,6 +1641,14 @@
         wrap.addEventListener('pointermove', event => {
             if (!drag || drag.ring === 'names') return;
             const { deg } = angleAt(event);
+            if (drag.ring === 'needle') {
+                // The 1 follows the needle, landing on whichever lit note it points at; the dots
+                // stay put and only their numbers change
+                drag.moved += 10;
+                const pc = slotAt(deg);
+                if (pc !== state.root && state.notes.includes(pc)) moveOneTo(pc);
+                return;
+            }
             let d = deg - drag.last;
             if (d > 180) d -= 360;
             if (d < -180) d += 360;
@@ -1620,10 +1667,12 @@
             drag = null;
             if (Math.abs(d.moved) < 6) {
                 if (d.ring === 'names') playNote(d.pc);
-                else if (d.ring === 'hub') toggleLoop();
+                else if (d.ring === 'hub' || d.ring === 'needle') toggleLoop();
                 else if (d.onNote) toggleNote(d.pc);
                 return;
             }
+            // The needle has already moved the 1 as it went; letting go turns nothing
+            if (d.ring === 'needle') return renderWheel(false);
             const turns = Math.round(d.moved / 30);
             if (turns) transpose(turns);
             else renderWheel(false);
