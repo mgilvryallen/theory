@@ -332,13 +332,9 @@
             stroke-linecap: round;
         }
 
-        .hub-btn {
-            fill: var(--green);
-            pointer-events: none;
-        }
-
         .hub-icon {
-            fill: var(--parchment);
+            fill: var(--woad);
+            opacity: 0.2;
             pointer-events: none;
         }
 
@@ -948,8 +944,8 @@
         }
 
         .choice.heard {
-            border-color: var(--teal);
-            box-shadow: inset 0 0 0 1px var(--teal);
+            border-color: var(--woad);
+            box-shadow: inset 0 0 0 1px var(--woad);
         }
 
         .choice.right {
@@ -1166,7 +1162,7 @@
         </div>
 
         <!-- Ear -->
-        <div class="card" style="--accent: var(--teal)" id="earCard">
+        <div class="card" style="--accent: var(--woad)" id="earCard">
             <div class="card-head">
                 <h2>Ear: Intervals</h2>
                 <div class="toggle ear-mode" id="earMode">
@@ -1176,7 +1172,7 @@
             <div id="earTest">
                 <p class="hint">Two notes, one after the other. How far apart are they?</p>
                 <div class="ear-go">
-                    <button class="btn" style="--accent: var(--teal)" onclick="newQuestion()" id="earPlay">play a pair</button>
+                    <button class="btn" style="--accent: var(--woad)" onclick="newQuestion()" id="earPlay">play a pair</button>
                     <button class="link-btn" onclick="replay()" id="earAgain" hidden>hear it again</button>
                     <span class="streak" id="streak"></span>
                 </div>
@@ -1446,7 +1442,7 @@
         // drag anywhere on the ring to carry the scale to a new key.
         const C = 200;
         // The compass ring's outer edge leaves the dots the same gap inside as they have outside
-        const R_NAMES = 178, R_SET = 124, R_HUB = 60, R_COMPASS = R_SET - 19 - (R_NAMES - 20 - (R_SET + 19));
+        const R_NAMES = 178, R_SET = 124, R_HUB = 52, R_COMPASS = R_SET - 19 - (R_NAMES - 20 - (R_SET + 19));
         const svgNS = 'http://www.w3.org/2000/svg';
 
         function polar(r, slot) {
@@ -1491,13 +1487,13 @@
             for (let pc = 0; pc < 12; pc++) el('line', { id: 'tick' + pc, class: 'compass-tick' }, ticks);
             const needle = el('g', { id: 'needle', class: 'needle' }, svg);
             // A gold diamond spanning the band, its longer half pointing out at the 1
-            const top = C - R_COMPASS + 1, mid = C - R_COMPASS + 8, tail = C - R_HUB - 2, half = 5;
+            const top = C - R_COMPASS + 1, mid = C - R_COMPASS + 11, tail = C - R_HUB - 5, half = 6;
             el('path', { d: `M${C} ${top} L${C + half} ${mid} L${C} ${tail} L${C - half} ${mid} Z`, class: 'needle-point' }, needle);
-            el('text', { x: C, y: C - 20, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 26px; fill: #a0522d' }, svg);
-            el('text', { x: C, y: C + 4, class: 'note-name', id: 'centerSub', style: 'font-size: 12px; fill: #6b5d4f' }, svg);
-            // Play and pause, under the name: a round button, like the one below the wheel
-            el('circle', { cx: C, cy: C + 32, r: 16, class: 'hub-btn' }, svg);
+            // The whole middle is the play button: its play or pause sign sits large and pale
+            // behind the key and the scale's name
             el('path', { id: 'hubIcon', class: 'hub-icon', d: '' }, svg);
+            el('text', { x: C, y: C - 7, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 24px; fill: #a0522d' }, svg);
+            el('text', { x: C, y: C + 15, class: 'note-name', id: 'centerSub', style: 'font-size: 11px; fill: #4a3f2f' }, svg);
             renderWheel(true);
         }
 
@@ -1588,7 +1584,14 @@
             if (!needleHeld) aimNeedle(state.root * 30, true);
             const known = SCALE_BY_MASK.get(maskOf(steps));
             document.getElementById('centerName').textContent = spelled[0];
-            document.getElementById('centerSub').textContent = known ? known.name.toLowerCase() : `${steps.length} notes`;
+            const sub = document.getElementById('centerSub');
+            sub.textContent = known ? known.name.toLowerCase() : `${steps.length} notes`;
+            sub.style.fontSize = '11px';
+            try {
+                const room = 2 * Math.sqrt(R_HUB * R_HUB - 15 * 15) - 10;
+                const width = sub.getComputedTextLength();
+                if (width > room) sub.style.fontSize = (11 * room / width).toFixed(1) + 'px';
+            } catch (e) {}
             renderHub();
         }
 
@@ -1848,34 +1851,22 @@
             if (r > 197) return;
             // The needle: near the centre's edge, pointing at the 1
             // The compass is easy to catch: from just outside the play button to the dots' edge
-            const onNeedle = r > 50 && r < R_COMPASS + 5;
-            const ring = onNeedle ? 'needle' : r > R_NAMES - 20 ? 'names' : r <= 50 ? 'hub' : 'set';
+            const onNeedle = r > R_HUB && r < R_COMPASS + 5;
+            const ring = onNeedle ? 'needle' : r > R_NAMES - 20 ? 'names' : r <= R_HUB ? 'hub' : 'set';
             drag = { ring, last: deg, moved: 0, pc: slotAt(deg), onNote: ring === 'set' && Math.abs(r - R_SET) < 30 };
             wrap.setPointerCapture(event.pointerId);
             wrap.style.cursor = cursorAt(event);
         });
         // The whole inside turns, from the ring or the middle; a tap in the middle plays
-        // The cursor says what's under it: a hand on anything you can drag (the compass ring, the
-        // bare wood of the middle ring), a pointer on anything you can tap (a dot, a note name,
-        // the play button), a closed hand while dragging
+        // The cursor is the usual arrow, except over the two rings you can drag (the compass
+        // ring and the scale ring, dots and all): an open hand, closed while dragging
         function cursorAt(event) {
-            if (drag) return drag.ring === 'names' || drag.ring === 'hub' ? 'pointer' : 'grabbing';
+            if (drag) return drag.ring === 'needle' || drag.ring === 'set' ? 'grabbing' : '';
             const box = document.getElementById('wheel').getBoundingClientRect();
             const x = (event.clientX - box.left) / box.width * 400;
             const y = (event.clientY - box.top) / box.height * 400;
             const r = Math.hypot(x - C, y - C);
-            const near = (radius, reach) => {
-                for (let slot = 0; slot < 12; slot++) {
-                    const [sx, sy] = polar(radius, slot);
-                    if (Math.hypot(x - sx, y - sy) < reach) return true;
-                }
-                return false;
-            };
-            if (r > 197) return '';
-            if (r > R_NAMES - 20) return near(R_NAMES, 17) ? 'pointer' : '';
-            if (r > 50 && r < R_COMPASS + 5) return 'grab';
-            if (r <= 50) return Math.hypot(x - C, y - (C + 32)) < 18 ? 'pointer' : '';
-            return near(R_SET, 22) ? 'pointer' : 'grab';
+            return r > R_HUB && r < R_NAMES - 20 ? 'grab' : '';
         }
 
         wrap.addEventListener('pointermove', event => {
@@ -1921,9 +1912,7 @@
             if (Math.abs(d.moved) < 6) {
                 if (d.ring === 'names') playNote(d.pc);
                 else if (d.ring === 'hub') togglePlay();
-                else if (d.ring === 'needle') {
-                    if (d.pc !== state.root && state.notes.includes(d.pc)) moveOneTo(d.pc);
-                }
+                else if (d.ring === 'needle') { /* the needle only ever turns */ }
                 else if (d.onNote) toggleNote(d.pc);
                 return;
             }
@@ -2414,10 +2403,10 @@
         function renderHub() {
             const icon = document.getElementById('hubIcon');
             if (!icon) return;
-            const x = C, y = C + 32;
+            const x = C, y = C;
             icon.setAttribute('d', run
-                ? `M${x - 6.5} ${y - 6.5} h4.5 v13 h-4.5 Z M${x + 2} ${y - 6.5} h4.5 v13 h-4.5 Z`
-                : `M${x - 4.5} ${y - 7.5} L${x + 8} ${y} L${x - 4.5} ${y + 7.5} Z`);
+                ? `M${x - 17} ${y - 21} h12 v42 h-12 Z M${x + 5} ${y - 21} h12 v42 h-12 Z`
+                : `M${x - 14} ${y - 25} L${x + 26} ${y} L${x - 14} ${y + 25} Z`);
             document.getElementById('hub').setAttribute('aria-label', run ? 'Pause' : 'Play the scale');
         }
 
