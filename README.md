@@ -5,7 +5,7 @@ Music theory you can turn in your hands. Make a scale on a wheel and it tells yo
 **Use it:** https://mgilvryallen.github.io/theory/
 
 - **The wheel:** the outside ring is the twelve notes; the inside ring is your scale, each note numbered from the 1. Tap a dot to add a note or take one out, and drag the ring to move your scale to a new key.
-- **The compass ring:** a thin ring just inside your notes shows where the 1 is. Drag its gold needle round (the small ticks turn with it) to move the 1 to another dot: same notes, new mode. F Ukrainian Dorian, needle to C: C harmonic minor.
+- **The inside ring:** a compass just inside your notes shows where the 1 is. Drag its gold needle round (the small ticks turn with it) to move the 1 to another dot: same notes, new mode. F Ukrainian Dorian, needle to C: C harmonic minor.
 - **The middle** plays your scale once; tap again to stop.
 - **Handpan, drone and reset:** under the wheel. Reset puts the wheel back on C major. The handpan improvises on your mode, like a handpan tuned to it, with an echo behind; the drone holds the 1 and 5. The scale plays over either. While one is playing and you scroll away, a small bar follows you down so you can switch them off (and on again).
 - **Pick from the list:** tap the key or the scale for the whole list. A new key whizzes the wheel round; a scale with as many notes slides just the dots that change, and one with a different number of notes spins the wheel to it. The modes of major are listed brightest to darkest, so stepping through them one dot slides down a half step each time.

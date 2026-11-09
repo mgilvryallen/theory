@@ -343,7 +343,7 @@
         }
 
         .hub-btn {
-            fill: var(--woad);
+            fill: var(--green);
             pointer-events: none;
         }
 
@@ -740,6 +740,12 @@
             margin-top: 10px;
         }
 
+        /* The label gets a line of its own, so it never breaks partway */
+        .near-label {
+            display: block;
+            white-space: nowrap;
+        }
+
         .near button {
             background: none;
             border: none;
@@ -1128,8 +1134,8 @@
             <h2>The Wheel</h2>
             <div class="hint" id="wheelHint">
                 <p><b>Outside ring:</b> The twelve notes in western music.</p>
-                <p><b>Inside ring:</b> The scale degrees. Tap a dot to add a note to your scale or take one out, and drag the ring to move your scale to a new key.</p>
-                <p><b>Compass ring:</b> Where the <b class="num">1</b> is. Drag the needle to move the <b class="num">1</b> to another dot in your scale.</p>
+                <p><b>Middle ring:</b> The scale degrees. Tap a dot to add a note to your scale or take one out, and drag the ring to move your scale to a new key.</p>
+                <p><b>Inside ring:</b> Where the <b class="num">1</b> is. Drag the ring to move the <b class="num">1</b> to another note in your scale.</p>
             </div>
 
             <div class="wheel-wrap" id="wheelWrap">
@@ -1456,7 +1462,7 @@
         // drag anywhere on the ring to carry the scale to a new key.
         const C = 200;
         // The compass ring's outer edge leaves the dots the same gap inside as they have outside
-        const R_NAMES = 178, R_SET = 124, R_HUB = 52, R_COMPASS = R_SET - 19 - (R_NAMES - 20 - (R_SET + 19));
+        const R_NAMES = 180, R_SET = 134, R_HUB = 76, R_COMPASS = R_SET - 19 - (R_NAMES - 20 - (R_SET + 19));
         const svgNS = 'http://www.w3.org/2000/svg';
 
         function polar(r, slot) {
@@ -1503,10 +1509,10 @@
             // A gold diamond spanning the band, its longer half pointing out at the 1
             const top = C - R_COMPASS + 1, mid = C - R_COMPASS + 11, tail = C - R_HUB - 5, half = 6;
             el('path', { d: `M${C} ${top} L${C + half} ${mid} L${C} ${tail} L${C - half} ${mid} Z`, class: 'needle-point' }, needle);
-            el('text', { x: C, y: C - 22, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 22px; fill: #a0522d' }, svg);
-            el('text', { x: C, y: C - 1, class: 'note-name', id: 'centerSub', style: 'font-size: 11px; fill: #6b5d4f' }, svg);
-            // Play and pause, under the name: a round blue button (a tap anywhere in the middle works)
-            el('circle', { cx: C, cy: C + 26, r: 15, class: 'hub-btn' }, svg);
+            el('text', { x: C, y: C - 30, class: 'note-name', id: 'centerName', style: 'font-family: Rug Pull, Georgia, serif; font-size: 28px; fill: #a0522d' }, svg);
+            el('text', { x: C, y: C - 3, class: 'note-name', id: 'centerSub', style: 'font-size: 13px; fill: #6b5d4f' }, svg);
+            // Play and pause, under the name: a round green button (a tap anywhere in the middle works)
+            el('circle', { cx: C, cy: C + 33, r: 19, class: 'hub-btn' }, svg);
             el('path', { id: 'hubIcon', class: 'hub-icon', d: '' }, svg);
             renderWheel(true);
         }
@@ -1600,11 +1606,11 @@
             document.getElementById('centerName').textContent = spelled[0];
             const sub = document.getElementById('centerSub');
             sub.textContent = known ? known.name.toLowerCase() : `${steps.length} notes`;
-            sub.style.fontSize = '11px';
+            sub.style.fontSize = '13px';
             try {
                 const room = 2 * Math.sqrt(R_HUB * R_HUB - 1) - 10;
                 const width = sub.getComputedTextLength();
-                if (width > room) sub.style.fontSize = (11 * room / width).toFixed(1) + 'px';
+                if (width > room) sub.style.fontSize = (13 * room / width).toFixed(1) + 'px';
             } catch (e) {}
             renderHub();
         }
@@ -1998,13 +2004,9 @@
                 const parentName = spelled[steps.indexOf(mod12(-family.start))] || spell(mod12(state.root - family.start), family.steps)[0];
                 html += `<p class="about">The ${ORDINAL[family.degree]} mode of ${family.parent}: the same notes as ${parentName} ${family.short}, starting on its ${ORDINAL[family.degree]} note.</p>`;
             }
-            html += '<div class="spelled">' + steps.map((s, i) => {
-                const changed = steps.length === 7 && labels[i].length > 1;
-                return `<span class="${changed ? 'changed' : ''}">${spelled[i]}<small>${labels[i]}</small></span>`;
-            }).join('') + '</div>';
             const others = hiding;
             if (others.length) {
-                html += `<p class="near">The same notes from another 1: ` + others.slice(0, 4).map(h => {
+                html += `<p class="near"><span class="near-label">Other modes that use these notes:</span>` + others.slice(0, 4).map(h => {
                     const pc = mod12(state.root + h.step);
                     const name = spelled[steps.indexOf(h.step)];
                     return `<button onclick="moveOneTo(${pc})">${name} ${h.scale.name}</button>`;
@@ -2447,10 +2449,10 @@
         function renderHub() {
             const icon = document.getElementById('hubIcon');
             if (!icon) return;
-            const x = C, y = C + 26;
+            const x = C, y = C + 33;
             icon.setAttribute('d', run
-                ? `M${x - 6} ${y - 6} h4.2 v12 h-4.2 Z M${x + 1.8} ${y - 6} h4.2 v12 h-4.2 Z`
-                : `M${x - 4} ${y - 7} L${x + 7.5} ${y} L${x - 4} ${y + 7} Z`);
+                ? `M${x - 7.5} ${y - 7.5} h5.2 v15 h-5.2 Z M${x + 2.3} ${y - 7.5} h5.2 v15 h-5.2 Z`
+                : `M${x - 5} ${y - 9} L${x + 9.5} ${y} L${x - 5} ${y + 9} Z`);
             document.getElementById('hub').setAttribute('aria-label', run ? 'Pause' : 'Play the scale');
         }
 
